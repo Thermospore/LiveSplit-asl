@@ -174,7 +174,7 @@ split
 	{
 		// This might be the source of a doublesplit bug I had
 		// Seems to happen after bosses and cutscenes. Putting a watch on it
-		print("THE DOUBLE SPLIT HAPPENS HERE!!!");
+		print("YOU SHOULDN'T SEE THIS UNLESS YOU ARE GOA-ING");
 		return true;
 	}
 	
