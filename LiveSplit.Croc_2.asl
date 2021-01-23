@@ -226,7 +226,7 @@ split
 
 			// Split on any progress change for certain levels
 			if (
-				// Boss level or secret level
+				// Boss level or secret level (as in Jigsaw)
 				type != 0 ||
 				// "Bride of the Dungeon of Defright" or "Goo Man Chu's Tower"
 				(tribe == 4 && (level == 5 || level == 6)))
@@ -234,7 +234,7 @@ split
 				return true;
 			}
 
-			// Secret Village splits
+			// Dante's World (Secret Village)
 			if (tribe == 5)
 			{
 				// Split on both gems and eggs
