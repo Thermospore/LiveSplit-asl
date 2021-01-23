@@ -234,13 +234,15 @@ split
 				return true;
 			}
 
-			// Dante's World
+			// Secret Village splits
 			if (tribe == 5)
 			{
+				// Split on both gems and eggs
 				if (settings["SplitOnDanteCrystals"])
 				{
 					return true;
 				}
+				// Or only split on eggs
 				else
 				{
 					const int CrystalFlags = 0x1f;
