@@ -32,28 +32,28 @@ state("Croc2", "EU")
 
 startup
 {
+	settings.Add("RequireUnusedBossWarps", true,
+		"Do not start if any boss warp has already been used");
 	settings.Add("StartAfterSaveSlotChosen", true,
 		"Save slot start");
 	settings.Add("StartOnFirstLevel", false,
 		"IL start");
 	settings.Add("StartOnHubCheat", false,
 		"IW start");
+	settings.Add("SplitOnMapChange", false,
+		"IL end (Split on map change)");
 	settings.Add("SplitOnSMP", false,
-		"IW stop");
+		"IW end (Split on SMP entry)");
 	settings.Add("SplitOnObjectiveCompletion", true,
 		"Split on objective completion");
 	settings.SetToolTip("SplitOnObjectiveCompletion",
 		"You probably want to disable this if doing IL splits");
 	settings.Add("SplitOnGoldenGobbo", false,
 		"100% splits", "SplitOnObjectiveCompletion");
-	settings.Add("SplitOnDanteCrystals", false,
-		"Split on collecting crystals in Dante's World");
-	settings.Add("SplitOnMapChange", false,
-		"Split on map change");
 	settings.Add("SplitOnBabies", false,
 		"Split on 7, 15, 21, and 26 babies");
-	settings.Add("RequireUnusedBossWarps", true,
-		"Do not start if any boss warp has already been used");
+	settings.Add("SplitOnDanteCrystals", false,
+		"Split on collecting crystals in Dante's World");
 
 	// Returns true iff the current map ID changed
 	vars.HasMapIDChanged = new Func<dynamic, dynamic, bool>((state1, state2) =>
