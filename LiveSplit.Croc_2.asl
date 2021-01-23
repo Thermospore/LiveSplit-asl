@@ -237,10 +237,12 @@ split
 			// Dante's World
 			if (tribe == 5)
 			{
+				// Split on both gems and eggs
 				if (settings["SplitOnDanteCrystals"])
 				{
 					return true;
 				}
+				// Or only split on eggs
 				else
 				{
 					const int CrystalFlags = 0x1f;
