@@ -266,10 +266,18 @@ split
 		}
 	}
 
-	// Split on map change (except when changing from or to shop map)
+	// Split on map change
 	if (settings["SplitOnMapChange"] && vars.HasMapIDChanged(old, current) &&
-		!vars.IsShopMap(old) && !vars.IsShopMap(current))
-	{
+		// but not when changing from or to shop map
+		!vars.IsShopMap(old) && !vars.IsShopMap(current) &&
+		// or when changing maps within soveena, flytrap, and masher
+		!(
+			(current.CurTribe == 1 || current.CurTribe == 3)
+			&&(current.CurLevel == 1 || current.CurLevel == 2)
+			&&(old.CurMap == 1 && current.CurMap == 2)
+			&&(current.CurType == 1)
+		))
+	{		
 		return true;
 	}
 }
