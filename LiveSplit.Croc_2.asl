@@ -160,6 +160,24 @@ start
 
 split
 {
+	// Prevent IL ending split from being skipped when exiting via GOA
+	// IIRC this has to go up here because the main state is not "running" at this moment
+	if (settings["SplitOnMapChange"]
+	&&(old.CurLevel == 0
+	&& old.CurMap == 2
+	&& old.CurTribe == 0
+	&& old.CurType == 3)
+	&&(current.CurLevel != 0
+	|| current.CurMap != 2
+	|| current.CurTribe != 0
+	|| current.CurType != 3))
+	{
+		// This might be the source of a doublesplit bug I had
+		// Seems to happen after bosses and cutscenes. Putting a watch on it
+		print("THE DOUBLE SPLIT HAPPENS HERE!!!");
+		return true;
+	}
+	
 	// Cancel if main state is not "running" or
 	// current tribe is not an ingame tribe
 	const int MainState_Running = 11;
