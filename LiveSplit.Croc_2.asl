@@ -40,8 +40,12 @@ startup
 		"IW start");
 	settings.Add("SplitOnSMP", false,
 		"IW stop");
+	settings.Add("SplitOnObjectiveCompletion", true,
+		"Split on objective completion");
+	settings.SetToolTip("SplitOnObjectiveCompletion",
+		"You probably want to disable this if doing IL splits");
 	settings.Add("SplitOnGoldenGobbo", false,
-		"100% splits");
+		"100% splits", "SplitOnObjectiveCompletion");
 	settings.Add("SplitOnDanteCrystals", false,
 		"Split on collecting crystals in Dante's World");
 	settings.Add("SplitOnMapChange", false,
@@ -224,16 +228,6 @@ split
 			int oldFlags = old.ProgressList[i], newFlags = current.ProgressList[i];
 			if (oldFlags == newFlags) continue;
 
-			// Split on any progress change for certain levels
-			if (
-				// Boss level or secret level (as in Jigsaw)
-				type != 0 ||
-				// "Bride of the Dungeon of Defright" or "Goo Man Chu's Tower"
-				(tribe == 4 && (level == 5 || level == 6)))
-			{
-				return true;
-			}
-
 			// Dante's World (Secret Village)
 			if (tribe == 5)
 			{
@@ -252,6 +246,20 @@ split
 					}
 				}
 			}
+			
+			// Stop if not using split on objective completion
+			else if (!settings["SplitOnObjectiveCompletion"]) continue;
+
+			// Split on any progress change for certain levels
+			else if (
+				// Boss level or secret level (as in Jigsaw)
+				type != 0 ||
+				// "Bride of the Dungeon of Defright" or "Goo Man Chu's Tower"
+				(tribe == 4 && (level == 5 || level == 6)))
+			{
+				return true;
+			}
+			
 			// Other levels
 			else
 			{
