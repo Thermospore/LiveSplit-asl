@@ -42,6 +42,8 @@ startup
 		"IW start");
 	settings.Add("SplitOnMapChange", false,
 		"IL end (Split on map change)");
+	settings.SetToolTip("SplitOnMapChange",
+		"This now works even when exiting via GOA!");
 	settings.Add("SplitOnSMP", false,
 		"IW end (Split on SMP entry)");
 	settings.Add("SplitOnObjectiveCompletion", true,
