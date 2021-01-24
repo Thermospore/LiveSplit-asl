@@ -51,7 +51,7 @@ startup
 	settings.SetToolTip("SplitOnObjectiveCompletion",
 		"You probably want to disable this if doing IL splits");
 	settings.Add("SplitOnGoldenGobbo", false,
-		"100% splits", "SplitOnObjectiveCompletion");
+		"100% (require Golden Gobbo)", "SplitOnObjectiveCompletion");
 	settings.Add("SplitOnBabies", false,
 		"Split on 7, 15, 21, and 26 babies");
 	settings.Add("SplitOnDanteCrystals", false,
