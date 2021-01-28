@@ -56,6 +56,10 @@ startup
 		"Split on 7, 15, 21, and 26 babies");
 	settings.Add("SplitOnDanteCrystals", false,
 		"Split on collecting crystals in Dante's World");
+	settings.Add("DebugOutput", false,
+		"Debug output");
+	settings.Add("DO_MapChanges", false,
+		"Output all map changes", "DebugOutput");
 
 	// Returns true iff the current map ID changed
 	vars.HasMapIDChanged = new Func<dynamic, dynamic, bool>((state1, state2) =>
@@ -100,6 +104,26 @@ init
 
 update
 {
+	// Debug output
+	if (settings["DebugOutput"])
+	{
+		// Output all map changes
+		if (settings["DO_MapChanges"] &&
+			vars.HasMapIDChanged(old, current))
+		{
+			print(
+				"Tribe: " + old.CurTribe.ToString() +
+					" -> " + current.CurTribe.ToString() +
+				"\nLevel: " + old.CurLevel.ToString() +
+					" -> " + current.CurLevel.ToString() +
+				"\nMap :  " + old.CurMap.ToString() +
+					" -> " + current.CurMap.ToString() +
+				"\nType : " + old.CurType.ToString() +
+					" -> " + current.CurType.ToString()
+				);
+		}
+	}
+	
 	return version != "";
 }
 
