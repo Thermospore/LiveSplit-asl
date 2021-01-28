@@ -60,6 +60,10 @@ startup
 		"Debug output");
 	settings.Add("DO_MapChanges", false,
 		"Output all map changes", "DebugOutput");
+	settings.Add("DO_MainState", false,
+		"Output all MainState changes", "DebugOutput");
+	settings.Add("DO_InGameState", false,
+		"Output all InGameState changes", "DebugOutput");
 
 	// Returns true iff the current map ID changed
 	vars.HasMapIDChanged = new Func<dynamic, dynamic, bool>((state1, state2) =>
@@ -121,6 +125,22 @@ update
 				"\nType : " + old.CurType.ToString() +
 					" -> " + current.CurType.ToString()
 				);
+		}
+		
+		// Output all MainState changes
+		if (settings["DO_MainState"] &&
+			old.MainState != current.MainState)
+		{
+			print("MainState: " + 
+				old.MainState.ToString() + " -> " + current.MainState.ToString());
+		}
+		
+		// Output all InGameState changes
+		if (settings["DO_InGameState"] &&
+			old.InGameState != current.InGameState)
+		{
+			print("InGameState: " + 
+				old.InGameState.ToString() + " -> " + current.InGameState.ToString());
 		}
 	}
 	
