@@ -44,8 +44,10 @@ startup
 		"IL end (Split on map change)");
 	settings.SetToolTip("SplitOnMapChange",
 		"This now works even when exiting via GOA!");
-	settings.Add("SplitOnSMP", false,
+	settings.Add("IWEnd", false,
 		"IW end (Split on SMP entry)");
+	settings.SetToolTip("IWEnd",
+		"This option is redundant if IL/ITS end is enabled");
 	settings.Add("SplitOnObjectiveCompletion", true,
 		"Split on objective completion");
 	settings.SetToolTip("SplitOnObjectiveCompletion",
@@ -240,13 +242,11 @@ split
 	// Cancel if old progress list is not available
 	if (!((IDictionary<string, object>)old).ContainsKey("ProgressList")) return false;
 
-	// Thermospore was here :)
-	// Split on entering SMP's shop in Sailor, Cossack, or Caveman after main boss completion
-	if (settings["SplitOnSMP"] &&
-		current.CurLevel == 1 &&
-		(current.ProgressList[current.CurTribe * 40 + 2 * 4 + 1] & 1) != 0 &&
-		current.CurTribe >= 1 && current.CurTribe <= 3 &&
-		old.CurMap == 1 && current.CurMap == 4)
+	// IW end (Split on SMP entry)
+	if (settings["IWEnd"] &&
+		!vars.IsShopMap(old) && vars.IsShopMap(current) &&
+		// dissalow for inca (inca IW ends on crystal placement)
+		current.CurTribe != 4)
 	{
 		return true;
 	}
