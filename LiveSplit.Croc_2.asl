@@ -206,8 +206,18 @@ start
 
 split
 {
+	// Cancel if main state is not "running" or
+	// current tribe is not an ingame tribe
+	const int MainState_Running = 11;
+	if (current.MainState != MainState_Running ||
+		current.CurTribe < 1 || current.CurTribe > 5)
+	{
+		((IDictionary<string, object>)current).Remove("ProgressList");
+		return false;
+	}
+
 	// Prevent IL ending split from being skipped when exiting via GOA
-	// IIRC this has to go up here because the main state is not "running" at this moment
+	// old progress list is not available at this point, which is why this must go up here
 	if (settings["SplitOnMapChange"] &&
 		vars.HasMapIDChanged(old, current) &&
 		// GOA screen map id
@@ -219,16 +229,6 @@ split
 		return true;
 	}
 	
-	// Cancel if main state is not "running" or
-	// current tribe is not an ingame tribe
-	const int MainState_Running = 11;
-	if (current.MainState != MainState_Running ||
-		current.CurTribe < 1 || current.CurTribe > 5)
-	{
-		((IDictionary<string, object>)current).Remove("ProgressList");
-		return false;
-	}
-
 	// Read progress list
 	const int SaveSlotSize = 0x2000;
 	var addrSaveSlot = vars.AddrSaveSlots +
