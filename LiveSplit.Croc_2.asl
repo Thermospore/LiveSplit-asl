@@ -188,19 +188,14 @@ split
 {
 	// Prevent IL ending split from being skipped when exiting via GOA
 	// IIRC this has to go up here because the main state is not "running" at this moment
-	if (settings["SplitOnMapChange"]
-	&&(old.CurLevel == 0
-	&& old.CurMap == 2
-	&& old.CurTribe == 0
-	&& old.CurType == 3)
-	&&(current.CurLevel != 0
-	|| current.CurMap != 2
-	|| current.CurTribe != 0
-	|| current.CurType != 3))
+	if (settings["SplitOnMapChange"] &&
+		vars.HasMapIDChanged(old, current) &&
+		// GOA screen map id
+		old.CurTribe == 0 &&
+		old.CurLevel == 0 &&
+		old.CurMap == 2 &&
+		old.CurType == 3)
 	{
-		// This might be the source of a doublesplit bug I had
-		// Seems to happen after bosses and cutscenes. Putting a watch on it
-		print("YOU SHOULDN'T SEE THIS UNLESS YOU ARE GOA-ING");
 		return true;
 	}
 	
