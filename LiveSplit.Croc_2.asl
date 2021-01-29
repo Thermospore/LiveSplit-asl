@@ -36,8 +36,10 @@ startup
 		"Do not start if any boss warp has already been used");
 	settings.Add("StartAfterSaveSlotChosen", true,
 		"Save slot start");
-	settings.Add("StartOnFirstLevel", false,
+	settings.Add("ILstart", false,
 		"IL start");
+	settings.SetToolTip("ILstart",
+		"Starts timer on map change when you enter a level");
 	settings.Add("StartOnHubCheat", false,
 		"IW start");
 	settings.Add("SplitOnMapChange", false,
@@ -184,14 +186,12 @@ start
 		return false;
 	}
 
-	if (settings["StartOnFirstLevel"] && (
-		// New map loaded
-		old.InGameState != current.InGameState ||
-		vars.HasMapIDChanged(old, current)) &&
-		current.InGameState == 0 && (
+	// IL start
+	if (settings["ILstart"] && 
+		vars.HasMapIDChanged(old, current) &&
 		// Current map is a non-village map of Dante's World
 		// or a non-village level of the Gobbo tribes
-		current.CurTribe == 5 ?
+		(current.CurTribe == 5 ?
 			current.CurMap > 1 :
 			(current.CurType != 0 || current.CurLevel > 1)))
 	{
