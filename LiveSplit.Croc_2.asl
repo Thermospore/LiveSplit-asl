@@ -44,9 +44,9 @@ startup
 		"IL end (Split on map change)");
 	settings.SetToolTip("SplitOnMapChange",
 		"This now works even when exiting via GOA!");
-	settings.Add("IWEnd", false,
+	settings.Add("SplitOnSMPEntry", false,
 		"IW end (Split on SMP entry)");
-	settings.SetToolTip("IWEnd",
+	settings.SetToolTip("SplitOnSMPEntry",
 		"This option is redundant if IL/ITS end is enabled");
 	settings.Add("SplitOnObjectiveCompletion", true,
 		"Split on objective completion");
@@ -243,7 +243,7 @@ split
 	if (!((IDictionary<string, object>)old).ContainsKey("ProgressList")) return false;
 
 	// IW end (Split on SMP entry)
-	if (settings["IWEnd"] &&
+	if (settings["SplitOnSMPEntry"] &&
 		!vars.IsShopMap(old) && vars.IsShopMap(current) &&
 		// dissalow for inca (inca IW ends on crystal placement)
 		current.CurTribe != 4)
