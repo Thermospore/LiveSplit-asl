@@ -76,6 +76,8 @@ startup
 		"Output all MainState changes", "DebugOutput");
 		settings.Add("DO_InGameState", false,
 		"Output all InGameState changes", "DebugOutput");
+		settings.Add("DO_IsCheatMenuOpen", false,
+		"Output all IsCheatMenuOpen changes", "DebugOutput");
 
 	// Returns true iff the current map ID changed
 	vars.HasMapIDChanged = new Func<dynamic, dynamic, bool>((state1, state2) =>
@@ -127,16 +129,14 @@ update
 		if (settings["DO_MapChanges"] &&
 			vars.HasMapIDChanged(old, current))
 		{
-			print(
-				"Tribe: " + old.CurTribe.ToString() +
+			print("Tribe: " + old.CurTribe.ToString() +
 					" -> " + current.CurTribe.ToString() +
 				"\nLevel: " + old.CurLevel.ToString() +
 					" -> " + current.CurLevel.ToString() +
 				"\nMap :  " + old.CurMap.ToString() +
 					" -> " + current.CurMap.ToString() +
 				"\nType : " + old.CurType.ToString() +
-					" -> " + current.CurType.ToString()
-				);
+					" -> " + current.CurType.ToString());
 		}
 		
 		// Output all MainState changes
@@ -144,7 +144,8 @@ update
 			old.MainState != current.MainState)
 		{
 			print("MainState: " + 
-				old.MainState.ToString() + " -> " + current.MainState.ToString());
+				old.MainState.ToString() + " -> " +
+				current.MainState.ToString());
 		}
 		
 		// Output all InGameState changes
@@ -152,7 +153,17 @@ update
 			old.InGameState != current.InGameState)
 		{
 			print("InGameState: " + 
-				old.InGameState.ToString() + " -> " + current.InGameState.ToString());
+				old.InGameState.ToString() + " -> " +
+				current.InGameState.ToString());
+		}
+		
+		// Output all IsCheatMenuOpen changes
+		if (settings["DO_IsCheatMenuOpen"] &&
+			old.IsCheatMenuOpen != current.IsCheatMenuOpen)
+		{
+			print("IsCheatMenuOpen: " + 
+				old.IsCheatMenuOpen.ToString() + " -> " +
+				current.IsCheatMenuOpen.ToString());
 		}
 	}
 	
