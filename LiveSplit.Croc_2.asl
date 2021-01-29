@@ -245,7 +245,7 @@ split
 	// IW end (Split on SMP entry)
 	if (settings["SplitOnSMPEntry"] &&
 		!vars.IsShopMap(old) && vars.IsShopMap(current) &&
-		// dissalow for inca (inca IW ends on crystal placement)
+		// disallow for inca (inca IW ends on crystal placement)
 		current.CurTribe != 4)
 	{
 		return true;
