@@ -41,9 +41,9 @@ startup
 	settings.Add("StartOnHubCheat", false,
 		"IW start");
 	settings.Add("SplitOnMapChange", false,
-		"IL end (Split on map change)");
+		"IL/ITS end (Split on map change)");
 	settings.SetToolTip("SplitOnMapChange",
-		"This now works even when exiting via GOA!");
+		"This can be used to chain multiple IL or ITS segments\n(note: now works even when exiting via GOA!)");
 	settings.Add("SplitOnSMPEntry", false,
 		"IW end (Split on SMP entry)");
 	settings.SetToolTip("SplitOnSMPEntry",
@@ -242,6 +242,27 @@ split
 	// Cancel if old progress list is not available
 	if (!((IDictionary<string, object>)old).ContainsKey("ProgressList")) return false;
 
+	// IL/ITS end (Split on map change)
+	if (settings["SplitOnMapChange"] &&
+		vars.HasMapIDChanged(old, current) &&
+		// disallow the split after the opening cutscene when you start a new game
+		!(
+			old.CurTribe == 1 &&
+			old.CurLevel == 1 &&
+			old.CurMap == 2 &&
+			old.CurType == 3
+		) &&
+		// disallow when changing maps within soveena, flytrap, and masher
+		!(
+			(current.CurTribe == 1 || current.CurTribe == 3) &&
+			(current.CurLevel == 1 || current.CurLevel == 2) &&
+			old.CurMap == 1 && current.CurMap == 2 &&
+			current.CurType == 1
+		))
+	{		
+		return true;
+	}
+
 	// IW end (Split on SMP entry)
 	if (settings["SplitOnSMPEntry"] &&
 		!vars.IsShopMap(old) && vars.IsShopMap(current) &&
@@ -333,21 +354,6 @@ split
 				}
 			}
 		}
-	}
-
-	// Split on map change
-	if (settings["SplitOnMapChange"] && vars.HasMapIDChanged(old, current) &&
-		// but not when changing from or to shop map
-		!vars.IsShopMap(old) && !vars.IsShopMap(current) &&
-		// or when changing maps within soveena, flytrap, and masher
-		!(
-			(current.CurTribe == 1 || current.CurTribe == 3)
-			&&(current.CurLevel == 1 || current.CurLevel == 2)
-			&&(old.CurMap == 1 && current.CurMap == 2)
-			&&(current.CurType == 1)
-		))
-	{		
-		return true;
 	}
 }
 
