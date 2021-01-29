@@ -32,41 +32,49 @@ state("Croc2", "EU")
 
 startup
 {
+	// Start
 	settings.Add("RequireUnusedBossWarps", true,
 		"Do not start if any boss warp has already been used");
 	settings.Add("StartAfterSaveSlotChosen", true,
 		"Save slot start");
 	settings.Add("ILstart", false,
 		"IL start");
-	settings.SetToolTip("ILstart",
+		settings.SetToolTip("ILstart",
 		"Starts timer on map change when you enter a level");
-	settings.Add("StartOnHubCheat", false,
+	settings.Add("IWstart", false,
 		"IW start");
+		settings.SetToolTip("IWstart",
+		"[filler text; haven't implemented new IW start yet]");
+
+	// Split
 	settings.Add("SplitOnMapChange", false,
 		"IL/ITS end (Split on map change)");
-	settings.SetToolTip("SplitOnMapChange",
-		"This can be used to chain multiple IL or ITS segments\n(note: now works even when exiting via GOA!)");
+		settings.SetToolTip("SplitOnMapChange",
+		"This can be used to chain multiple IL or ITS segments" +
+		"\n(note: now works even when exiting via GOA!)");
 	settings.Add("SplitOnSMPEntry", false,
 		"IW end (Split on SMP entry)");
-	settings.SetToolTip("SplitOnSMPEntry",
+		settings.SetToolTip("SplitOnSMPEntry",
 		"This option is redundant if IL/ITS end is enabled");
 	settings.Add("SplitOnObjectiveCompletion", true,
 		"Split on objective completion");
-	settings.SetToolTip("SplitOnObjectiveCompletion",
+		settings.SetToolTip("SplitOnObjectiveCompletion",
 		"You probably want to disable this if doing IL splits");
-	settings.Add("SplitOnGoldenGobbo", false,
+		settings.Add("SplitOnGoldenGobbo", false,
 		"100% (require Golden Gobbo)", "SplitOnObjectiveCompletion");
 	settings.Add("SplitOnBabies", false,
 		"Split on 7, 15, 21, and 26 babies");
 	settings.Add("SplitOnDanteCrystals", false,
 		"Split on collecting crystals in Dante's World");
+
+	// Debug
 	settings.Add("DebugOutput", false,
 		"Debug output");
-	settings.Add("DO_MapChanges", false,
+		settings.Add("DO_MapChanges", false,
 		"Output all map changes", "DebugOutput");
-	settings.Add("DO_MainState", false,
+		settings.Add("DO_MainState", false,
 		"Output all MainState changes", "DebugOutput");
-	settings.Add("DO_InGameState", false,
+		settings.Add("DO_InGameState", false,
 		"Output all InGameState changes", "DebugOutput");
 
 	// Returns true iff the current map ID changed
@@ -198,7 +206,8 @@ start
 		return true;
 	}
 
-	if (settings["StartOnHubCheat"] &&
+	// IW start
+	if (settings["IWstart"] &&
 		// Cheat menu is open while loading a new map
 		current.IsCheatMenuOpen != 0 && current.InGameState == 7)
 	{
