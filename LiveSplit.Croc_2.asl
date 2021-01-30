@@ -43,6 +43,12 @@ startup
 		"IL start");
 		settings.SetToolTip("ILstart",
 		"Starts timer on map change when you enter a level");
+	settings.Add("ITSstart", false,
+		"ITS start");
+		settings.SetToolTip("ITSstart",
+		"Starts timer on map change when you enter hub or SMP" +
+		"\n\n(note: used to record times for the Interlevel Times Sheet)" +
+		"\n(note: secret is currently disabled, as its ITS isn't set up yet)");
 	settings.Add("IWstart", false,
 		"IW start");
 		settings.SetToolTip("IWstart",
@@ -220,6 +226,42 @@ start
 		(current.CurTribe == 5 ?
 			current.CurMap > 1 :
 			(current.CurType != 0 || current.CurLevel > 1)))
+	{
+		return true;
+	}
+	
+	// ITS start
+	if (settings["ITSstart"] &&
+		vars.HasMapIDChanged(old, current) &&
+		// disallow secret village (only because its ITS isn't set up yet)
+		current.CurTribe != 5 &&
+		// disallow starting on cheat menu warp
+		// (technically a valid SMP->__ segment start, but more intrusive than useful)
+		current.IsCheatMenuOpen == 0 &&
+		// disallow starting after the opening cutscene when you start a new game
+		!(
+			old.CurTribe == 1 &&
+			old.CurLevel == 1 &&
+			old.CurMap == 2 &&
+			old.CurType == 3
+		) &&
+		// disallow starting after loading a save
+		!(
+			old.CurTribe == 0 &&
+			old.CurLevel == 0 &&
+			old.CurMap == 4 &&
+			old.CurType == 3
+		) &&
+		// one of the following scenarios:
+		(
+			// entering hub
+			(current.CurTribe >= 1 && current.CurTribe <= 4 &&
+			current.CurLevel == 1 &&
+			current.CurMap == 1 &&
+			current.CurType == 0) ||
+			// entering SMP
+			vars.IsShopMap(current)
+		))
 	{
 		return true;
 	}
