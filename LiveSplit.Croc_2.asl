@@ -43,14 +43,14 @@ startup
 		"IL start");
 		settings.SetToolTip("ILstart",
 		"Starts timer on map change when you enter a level");
-	settings.Add("ITSstart", false,
-		"ITS start");
-		settings.SetToolTip("ITSstart",
+	settings.Add("OTSstart", false,
+		"OTS start");
+		settings.SetToolTip("OTSstart",
 		"Starts timer on map change when you enter hub" +
-		"\n\n(note: used to record times for the Interlevel Times Sheet)" +
-		"\n(note: secret is currently disabled, as its ITS isn't set up yet)");
-		settings.Add("ITSstart_SMP", false,
-		"Also start on SMP entry", "ITSstart");
+		"\n\n(note: used to record times for the Overworld Times Sheet)" +
+		"\n(note: secret is currently disabled, as its OTS isn't set up yet)");
+		settings.Add("OTSstart_SMP", false,
+		"Also start on SMP entry", "OTSstart");
 	settings.Add("IWstart", false,
 		"IW start");
 		settings.SetToolTip("IWstart",
@@ -61,16 +61,16 @@ startup
 
 	// Split
 	settings.Add("SplitOnMapChange", false,
-		"IL/ITS end split");
+		"IL/OTS end split");
 		settings.SetToolTip("SplitOnMapChange",
 		"Splits timer on map change" +
-		"\n\n(note: this can be used to chain multiple IL or ITS segments!)" +
+		"\n\n(note: this can be used to chain multiple IL and OTS segments!)" +
 		"\n(update: now works even when exiting via GOA)");
 	settings.Add("SplitOnSMPEntry", false,
 		"IW end split");
 		settings.SetToolTip("SplitOnSMPEntry",
 		"Splits timer on map change into SMP" +
-		"\n\n(note: this option is redundant if IL/ITS end split is enabled)");
+		"\n\n(note: this option is redundant if IL/OTS end split is enabled)");
 	settings.Add("SplitOnObjectiveCompletion", true,
 		"Split on objective completion");
 		settings.SetToolTip("SplitOnObjectiveCompletion",
@@ -232,11 +232,11 @@ start
 		return true;
 	}
 	
-	// ITS start (on hub entry)
-	if (settings["ITSstart"] &&
+	// OTS start (on hub entry)
+	if (settings["OTSstart"] &&
 		vars.HasMapIDChanged(old, current) &&
 		// entering hub
-		// (no secret village; its ITS isn't set up yet)
+		// (no secret village; its OTS isn't set up yet)
 		current.CurTribe >= 1 && current.CurTribe <= 4 &&
 		current.CurLevel == 1 &&
 		current.CurMap == 1 &&
@@ -262,8 +262,8 @@ start
 		return true;
 	}
 	
-	// ITS start (on SMP entry)
-	if (settings["ITSstart_SMP"] &&
+	// OTS start (on SMP entry)
+	if (settings["OTSstart_SMP"] &&
 		vars.HasMapIDChanged(old, current) && vars.IsShopMap(current))
 	{
 		return true;
@@ -334,7 +334,7 @@ split
 	// Cancel if old progress list is not available
 	if (!((IDictionary<string, object>)old).ContainsKey("ProgressList")) return false;
 
-	// IL/ITS end (Split on map change)
+	// IL/OTS end (Split on map change)
 	if (settings["SplitOnMapChange"] &&
 		vars.HasMapIDChanged(old, current) &&
 		// disallow the split after the opening cutscene when you start a new game
