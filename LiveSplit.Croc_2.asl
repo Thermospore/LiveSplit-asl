@@ -99,6 +99,12 @@ startup
 		state1.CurTribe != state2.CurTribe || state1.CurLevel != state2.CurLevel ||
 		state1.CurMap != state2.CurMap || state1.CurType != state2.CurType);
 
+	// Returns true iff map has specified map ID
+	vars.IsThisMap = new Func<dynamic, int, int, int, int, bool>(
+		(state, tribe, level, map, type) =>
+		state.CurTribe == tribe && state.CurLevel == level &&
+		state.CurMap == map && state.CurType == type);
+
 	// Returns true iff map is "Swap Meet Pete's General Store"
 	vars.IsShopMap = new Func<dynamic, bool>(state =>
 		state.CurTribe >= 1 && state.CurTribe <= 4 &&
@@ -245,19 +251,9 @@ start
 		// (technically a valid SMP->__ segment start, but more intrusive than useful)
 		current.IsCheatMenuOpen == 0 &&
 		// disallow starting after the opening cutscene when you start a new game
-		!(
-			old.CurTribe == 1 &&
-			old.CurLevel == 1 &&
-			old.CurMap == 2 &&
-			old.CurType == 3
-		) &&
+		!vars.IsThisMap(old, 1, 1, 2, 3) &&
 		// disallow starting after loading a save
-		!(
-			old.CurTribe == 0 &&
-			old.CurLevel == 0 &&
-			old.CurMap == 4 &&
-			old.CurType == 3
-		))
+		!vars.IsThisMap(old, 0, 0, 4, 3))
 	{
 		return true;
 	}
@@ -287,10 +283,7 @@ start
 			current.CurMap == 1 &&
 			current.CurType == 0) ||
 			// hub of secret sailor
-			(current.CurTribe == 5 &&
-			current.CurLevel == 2 &&
-			current.CurMap == 1 &&
-			current.CurType == 0)
+			vars.IsThisMap(current, 5, 2, 1, 0)
 		))
 		
 	{
@@ -314,11 +307,8 @@ split
 	// old progress list is not available at this point, which is why this must go up here
 	if (settings["SplitOnMapChange"] &&
 		vars.HasMapIDChanged(old, current) &&
-		// GOA screen map id
-		old.CurTribe == 0 &&
-		old.CurLevel == 0 &&
-		old.CurMap == 2 &&
-		old.CurType == 3)
+		// was on GOA screen
+		vars.IsThisMap(old, 0, 0, 2, 3))
 	{
 		return true;
 	}
@@ -338,12 +328,7 @@ split
 	if (settings["SplitOnMapChange"] &&
 		vars.HasMapIDChanged(old, current) &&
 		// disallow the split after the opening cutscene when you start a new game
-		!(
-			old.CurTribe == 1 &&
-			old.CurLevel == 1 &&
-			old.CurMap == 2 &&
-			old.CurType == 3
-		) &&
+		!vars.IsThisMap(old, 1, 1, 2, 3) &&
 		// disallow when changing maps within soveena, flytrap, and masher
 		!(
 			(current.CurTribe == 1 || current.CurTribe == 3) &&
