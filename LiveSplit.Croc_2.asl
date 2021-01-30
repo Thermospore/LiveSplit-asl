@@ -35,8 +35,10 @@ startup
 	// Start
 	settings.Add("RequireUnusedBossWarps", true,
 		"Do not start if any boss warp has already been used");
-	settings.Add("StartAfterSaveSlotChosen", true,
+	settings.Add("SaveSlotStart", true,
 		"Save slot start");
+		settings.SetToolTip("SaveSlotStart",
+		"Starts timer on overwriting or creating in a save slot");
 	settings.Add("ILstart", false,
 		"IL start");
 		settings.SetToolTip("ILstart",
@@ -51,18 +53,20 @@ startup
 
 	// Split
 	settings.Add("SplitOnMapChange", false,
-		"IL/ITS end (Split on map change)");
+		"IL/ITS end split");
 		settings.SetToolTip("SplitOnMapChange",
-		"This can be used to chain multiple IL or ITS segments" +
-		"\n(note: now works even when exiting via GOA!)");
+		"Splits timer on map change" +
+		"\n\n(note: this can be used to chain multiple IL or ITS segments!)" +
+		"\n(update: now works even when exiting via GOA)");
 	settings.Add("SplitOnSMPEntry", false,
-		"IW end (Split on SMP entry)");
+		"IW end split");
 		settings.SetToolTip("SplitOnSMPEntry",
-		"This option is redundant if IL/ITS end is enabled");
+		"Splits timer on map change into SMP" +
+		"\n\n(note: this option is redundant if IL/ITS end split is enabled)");
 	settings.Add("SplitOnObjectiveCompletion", true,
 		"Split on objective completion");
 		settings.SetToolTip("SplitOnObjectiveCompletion",
-		"You probably want to disable this if doing IL splits");
+		"(note: you probably want to disable this if doing IL splits)");
 		settings.Add("SplitOnGoldenGobbo", false,
 		"100% (require Golden Gobbo)", "SplitOnObjectiveCompletion");
 	settings.Add("SplitOnBabies", false,
@@ -191,7 +195,7 @@ start
 
 	// Start when main state is in transition from
 	// "level select" or "save slot selection" to "running"
-	if (settings["StartAfterSaveSlotChosen"] && (
+	if (settings["SaveSlotStart"] && (
 		current.MainState == MainState_ChooseSaveSlot ||
 		current.MainState == MainState_LevelSelect) &&
 		current.IsNewMainStateValid != 0 &&
