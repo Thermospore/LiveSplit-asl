@@ -44,7 +44,10 @@ startup
 	settings.Add("IWstart", false,
 		"IW start");
 		settings.SetToolTip("IWstart",
-		"[filler text; haven't implemented new IW start yet]");
+		"Starts timer on map change when you exit SMP to hub" +
+		"\n\n(note: using the cheat menu to warp is equivalent)" +
+		"\n(fun fact: WW, SQ, DA, and GOA are not equivalent" +
+			"; they give a different hub spawn!)");
 
 	// Split
 	settings.Add("SplitOnMapChange", false,
@@ -219,8 +222,28 @@ start
 
 	// IW start
 	if (settings["IWstart"] &&
-		// Cheat menu is open while loading a new map
-		current.IsCheatMenuOpen != 0 && current.InGameState == 7)
+		// was in one of these places
+		(
+			// SMP
+			vars.IsShopMap(old) ||
+			// a previous village, and the cheat menu was used
+			(old.CurTribe < current.CurTribe &&
+			current.IsCheatMenuOpen == 1)
+		) &&
+		// now in one of these places
+		(
+			// hub of cossack, caveman, or inca
+			(current.CurTribe >= 2 && current.CurTribe <= 4 &&
+			current.CurLevel == 1 &&
+			current.CurMap == 1 &&
+			current.CurType == 0) ||
+			// hub of secret sailor
+			(current.CurTribe == 5 &&
+			current.CurLevel == 2 &&
+			current.CurMap == 1 &&
+			current.CurType == 0)
+		))
+		
 	{
 		return true;
 	}
