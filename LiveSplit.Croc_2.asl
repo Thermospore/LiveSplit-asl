@@ -267,13 +267,14 @@ start
 
 	// IW start
 	if (settings["IWstart"] &&
+		// advancing to a later village
+		old.CurTribe < current.CurTribe &&
 		// was in one of these places
 		(
 			// SMP
 			vars.IsShopMap(old) ||
-			// a previous village, and the cheat menu was used
-			(old.CurTribe < current.CurTribe &&
-			current.IsCheatMenuOpen == 1)
+			// anywhere, as long as the cheat menu was used
+			current.IsCheatMenuOpen == 1
 		) &&
 		// now in one of these places
 		(
