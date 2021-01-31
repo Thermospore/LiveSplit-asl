@@ -335,7 +335,7 @@ split
 	// Cancel if old progress list is not available
 	if (!((IDictionary<string, object>)old).ContainsKey("ProgressList")) return false;
 
-	// IL/OTS end (Split on map change)
+	// IL/OTS end
 	if (settings["SplitOnMapChange"] &&
 		vars.HasMapIDChanged(old, current) &&
 		// disallow the split after the opening cutscene when you start a new game
@@ -351,11 +351,18 @@ split
 		return true;
 	}
 
-	// IW end (Split on SMP entry)
+	// IW end
 	if (settings["SplitOnSMPEntry"] &&
-		!vars.IsShopMap(old) && vars.IsShopMap(current) &&
-		// disallow for inca (inca IW ends on crystal placement)
-		current.CurTribe != 4)
+		// was in hub
+		old.CurTribe >= 1 && old.CurTribe <= 4 &&
+		old.CurLevel == 1 &&
+		old.CurMap == 1 &&
+		old.CurType == 0 &&
+		// now in SMP
+		vars.IsShopMap(current) &&
+		// restrict to sailor through caveman
+		// (inca ends on yellow dante crystal; secret ends on final egg)
+		current.CurTribe >= 1 && current.CurTribe <= 3)
 	{
 		return true;
 	}
