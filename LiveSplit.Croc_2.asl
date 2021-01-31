@@ -85,14 +85,17 @@ startup
 	// Debug
 	settings.Add("DebugOutput", false,
 		"Debug output");
+		settings.SetToolTip("DebugOutput",
+		"Prints debug info in Dbgview.exe" +
+		"\n\n(note: allows you to see which changes happened in the same ASL cycle)");
 		settings.Add("DO_MapChanges", false,
-		"Output all map changes", "DebugOutput");
+		"Map changes", "DebugOutput");
 		settings.Add("DO_MainState", false,
-		"Output all MainState changes", "DebugOutput");
+		"MainState changes", "DebugOutput");
 		settings.Add("DO_InGameState", false,
-		"Output all InGameState changes", "DebugOutput");
+		"InGameState changes", "DebugOutput");
 		settings.Add("DO_IsCheatMenuOpen", false,
-		"Output all IsCheatMenuOpen changes", "DebugOutput");
+		"IsCheatMenuOpen changes", "DebugOutput");
 
 	// Returns true iff the current map ID changed
 	vars.HasMapIDChanged = new Func<dynamic, dynamic, bool>((state1, state2) =>
@@ -146,45 +149,52 @@ update
 	// Debug output
 	if (settings["DebugOutput"])
 	{
-		// Output all map changes
+		string debugText = "";
+		
+		// map changes
 		if (settings["DO_MapChanges"] &&
 			vars.HasMapIDChanged(old, current))
 		{
-			print("Tribe: " + old.CurTribe.ToString() +
+			debugText += "\n┃Tribe: " + old.CurTribe.ToString() +
 					" -> " + current.CurTribe.ToString() +
-				"\nLevel: " + old.CurLevel.ToString() +
+				"\n┃Level: " + old.CurLevel.ToString() +
 					" -> " + current.CurLevel.ToString() +
-				"\nMap :  " + old.CurMap.ToString() +
+				"\n┃Map:   " + old.CurMap.ToString() +
 					" -> " + current.CurMap.ToString() +
-				"\nType : " + old.CurType.ToString() +
-					" -> " + current.CurType.ToString());
+				"\n┃Type:  " + old.CurType.ToString() +
+					" -> " + current.CurType.ToString();
 		}
 		
-		// Output all MainState changes
+		// MainState changes
 		if (settings["DO_MainState"] &&
 			old.MainState != current.MainState)
 		{
-			print("MainState: " + 
-				old.MainState.ToString() + " -> " +
-				current.MainState.ToString());
+			debugText += "\n┃MainState: " + old.MainState.ToString() +
+				" -> " + current.MainState.ToString();
 		}
 		
-		// Output all InGameState changes
+		// InGameState changes
 		if (settings["DO_InGameState"] &&
 			old.InGameState != current.InGameState)
 		{
-			print("InGameState: " + 
-				old.InGameState.ToString() + " -> " +
-				current.InGameState.ToString());
+			debugText += "\n┃InGameState: " + old.InGameState.ToString() +
+				" -> " + current.InGameState.ToString();
 		}
 		
-		// Output all IsCheatMenuOpen changes
+		// IsCheatMenuOpen changes
 		if (settings["DO_IsCheatMenuOpen"] &&
 			old.IsCheatMenuOpen != current.IsCheatMenuOpen)
 		{
-			print("IsCheatMenuOpen: " + 
-				old.IsCheatMenuOpen.ToString() + " -> " +
-				current.IsCheatMenuOpen.ToString());
+			debugText += "\n┃IsCheatMenuOpen: " + old.IsCheatMenuOpen.ToString() +
+				" -> " + current.IsCheatMenuOpen.ToString();
+		}
+		
+		// Print output
+		if (debugText != "")
+		{
+			print("┏━━━━━━━━━━━━━┓" +
+				debugText +
+				"\n┗━━━━━━━━━━━━━┛");
 		}
 	}
 	
