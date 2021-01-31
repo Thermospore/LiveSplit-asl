@@ -284,7 +284,7 @@ start
 			// SMP
 			vars.IsShopMap(old) ||
 			// anywhere, as long as the cheat menu was used
-			current.IsCheatMenuOpen == 1
+			old.IsCheatMenuOpen == 1
 		) &&
 		// now in one of these places
 		(
