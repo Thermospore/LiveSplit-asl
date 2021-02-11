@@ -107,6 +107,11 @@ startup
 		(state, tribe, level, map, type) =>
 		state.CurTribe == tribe && state.CurLevel == level &&
 		state.CurMap == map && state.CurType == type);
+		
+	// Returns true iff map is a gobbo hub map
+	vars.IsGobboHub = new Func<dynamic, bool>(state =>
+		state.CurTribe >= 1 && state.CurTribe <= 4 &&
+		state.CurLevel == 1 && state.CurMap == 1 && state.CurType == 0);
 
 	// Returns true iff map is "Swap Meet Pete's General Store"
 	vars.IsShopMap = new Func<dynamic, bool>(state =>
@@ -250,13 +255,9 @@ start
 	
 	// OTS start (on hub entry)
 	if (settings["OTSstart"] &&
-		vars.HasMapIDChanged(old, current) &&
 		// entering hub
 		// (no secret village; its OTS isn't set up yet)
-		current.CurTribe >= 1 && current.CurTribe <= 4 &&
-		current.CurLevel == 1 &&
-		current.CurMap == 1 &&
-		current.CurType == 0 &&
+		!vars.IsGobboHub(old) && vars.IsGobboHub(current) &&
 		// disallow starting on cheat menu warp
 		// (technically a valid SMP->__ segment start, but more intrusive than useful)
 		current.IsCheatMenuOpen == 0 &&
@@ -289,10 +290,7 @@ start
 		// now in one of these places
 		(
 			// hub of cossack, caveman, or inca
-			(current.CurTribe >= 2 && current.CurTribe <= 4 &&
-			current.CurLevel == 1 &&
-			current.CurMap == 1 &&
-			current.CurType == 0) ||
+			(vars.IsGobboHub(current) && current.CurTribe != 1) ||
 			// hub of secret sailor
 			vars.IsThisMap(current, 5, 2, 1, 0)
 		))
@@ -354,10 +352,7 @@ split
 	// IW end
 	if (settings["SplitOnSMPEntry"] &&
 		// was in hub
-		old.CurTribe >= 1 && old.CurTribe <= 4 &&
-		old.CurLevel == 1 &&
-		old.CurMap == 1 &&
-		old.CurType == 0 &&
+		vars.IsGobboHub(old) &&
 		// now in SMP
 		vars.IsShopMap(current) &&
 		// restrict to sailor through caveman
