@@ -12,6 +12,12 @@ state("Croc2", "US")
 	int MainState           : 0xB793C;
 	int GobboCounter        : 0x12AEE0;
 	int DFCrystal5IP        : 0x223D10;
+	
+	// Temporary solution. This only works for Save Slot 0
+	int PrevTribeSS0        : 0x204374;
+	int PrevLevelSS0        : 0x204378;
+	int PrevMapSS0          : 0x20437C;
+	int PrevTypeSS0         : 0x204380;
 }
 
 state("Croc2", "EU")
@@ -90,6 +96,8 @@ startup
 		"\n\n(note: allows you to see which changes happened in the same ASL cycle)");
 		settings.Add("DO_MapChanges", false,
 		"Map changes", "DebugOutput");
+		settings.Add("DO_PrevWadSS0", false,
+		"PrevWadSS0 changes", "DebugOutput");
 		settings.Add("DO_MainState", false,
 		"MainState changes", "DebugOutput");
 		settings.Add("DO_InGameState", false,
@@ -168,6 +176,23 @@ update
 					" -> " + current.CurMap.ToString() +
 				"\n┃Type:  " + old.CurType.ToString() +
 					" -> " + current.CurType.ToString();
+		}
+		
+		// PrevWadSS0 changes
+		if (settings["DO_PrevWadSS0"] &&
+			(old.PrevTribeSS0 != current.PrevTribeSS0 ||
+			old.PrevLevelSS0 != current.PrevLevelSS0 ||
+			old.PrevMapSS0 != current.PrevMapSS0 ||
+			old.PrevTypeSS0 != current.PrevTypeSS0))
+		{
+			debugText += "\n┃PrevTribeSS0: " + old.PrevTribeSS0.ToString() +
+					" -> " + current.PrevTribeSS0.ToString() +
+				"\n┃PrevLevelSS0: " + old.PrevLevelSS0.ToString() +
+					" -> " + current.PrevLevelSS0.ToString() +
+				"\n┃PrevMapSS0:   " + old.PrevMapSS0.ToString() +
+					" -> " + current.PrevMapSS0.ToString() +
+				"\n┃PrevTypeSS0:  " + old.PrevTypeSS0.ToString() +
+					" -> " + current.PrevTypeSS0.ToString();
 		}
 		
 		// MainState changes
