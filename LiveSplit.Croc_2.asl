@@ -281,7 +281,7 @@ start
 	// OTS start (on hub entry)
 	if (settings["OTSstart"] &&
 		// entering hub
-		// (no secret village; its OTS isn't set up yet)
+		// (no secret village for now; its OTS isn't set up yet)
 		!vars.IsGobboHub(old) && vars.IsGobboHub(current) &&
 		// disallow starting on cheat menu warp
 		// (technically a valid SMP->__ segment start, but more intrusive than useful)
@@ -289,7 +289,17 @@ start
 		// disallow starting after the opening cutscene when you start a new game
 		!vars.IsThisMap(old, 1, 1, 2, 3) &&
 		// disallow starting after loading a save
-		!vars.IsThisMap(old, 0, 0, 4, 3))
+		!vars.IsThisMap(old, 0, 0, 4, 3) &&
+		// disallow starting after GOA in gobbo hub or secret hub
+		!(
+			// was on GOA screen
+			vars.IsThisMap(old, 0, 0, 2, 3) &&
+			// previous map is equal to current map (which is already constrained to hub)
+			current.PrevTribeSS0 == current.CurTribe &&
+			current.PrevLevelSS0 == current.CurLevel &&
+			current.PrevMapSS0 == current.CurMap &&
+			current.PrevTypeSS0 == current.CurType
+		))
 	{
 		return true;
 	}
@@ -337,12 +347,27 @@ split
 		return false;
 	}
 
-	// Prevent IL ending split from being skipped when exiting via GOA
-	// old progress list is not available at this point, which is why this must go up here
+	// Prevent IL/OTS end from being skipped when exiting via GOA
+	// (old progress list not available at this point, which is why this must go up here?)
 	if (settings["SplitOnMapChange"] &&
 		vars.HasMapIDChanged(old, current) &&
 		// was on GOA screen
-		vars.IsThisMap(old, 0, 0, 2, 3))
+		vars.IsThisMap(old, 0, 0, 2, 3) &&
+		// disallow split after GOAing in gobbo hub or secret hub
+		!(
+			(
+				vars.IsGobboHub(current) ||
+				(current.CurTribe == 5 &&
+				current.CurLevel >= 2 && current.CurLevel <= 4 &&
+				current.CurMap == 1 &&
+				current.CurType == 0)
+			) &&
+			// previous map is equal to current map (hub)
+			current.PrevTribeSS0 == current.CurTribe &&
+			current.PrevLevelSS0 == current.CurLevel &&
+			current.PrevMapSS0 == current.CurMap &&
+			current.PrevTypeSS0 == current.CurType
+		))
 	{
 		return true;
 	}
