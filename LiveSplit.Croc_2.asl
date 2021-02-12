@@ -11,6 +11,7 @@ state("Croc2", "US")
 	int IsNewMainStateValid : 0xB7934;
 	int MainState           : 0xB793C;
 	int GobboCounter        : 0x12AEE0;
+	int AllowReturnToHub    : 0x12AEFC;
 	int DFCrystal5IP        : 0x223D10;
 	
 	// Temporary solution. This only works for Save Slot 0
@@ -33,6 +34,7 @@ state("Croc2", "EU")
 	int IsNewMainStateValid : 0xBEB24;
 	int MainState           : 0xBEB2C;
 	int GobboCounter        : 0x1320D0;
+	int AllowReturnToHub    : 0x1320EC;
 	int DFCrystal5IP        : 0x22AF00;
 }
 
@@ -125,6 +127,19 @@ startup
 	vars.IsShopMap = new Func<dynamic, bool>(state =>
 		state.CurTribe >= 1 && state.CurTribe <= 4 &&
 		state.CurLevel == 1 && state.CurMap == 4 && state.CurType == 0);
+		
+	// Returns true iff a wrong warp is being performed
+	vars.IsWrongWarp = new Func<dynamic, dynamic, bool>((oldState, curState) =>
+		// old map is not hub map - can't use functions in functions :(
+		!(oldState.CurTribe >= 1 && oldState.CurTribe <= 4 &&
+		oldState.CurLevel == 1 && oldState.CurMap == 1 && oldState.CurType == 0) &&
+		// new map is hub map
+		curState.CurTribe >= 1 && curState.CurTribe <= 4 &&
+		curState.CurLevel == 1 && curState.CurMap == 1 && curState.CurType == 0 &&
+		// return to hub option enabled (usually set to 0 on door, but will stick if ww)
+		curState.AllowReturnToHub == 1 &&
+		// saveslot PrevTribe is already 0 (this is the main indicator)
+		curState.PrevTribeSS0 == 0);
 }
 
 init
@@ -299,7 +314,9 @@ start
 			current.PrevLevelSS0 == current.CurLevel &&
 			current.PrevMapSS0 == current.CurMap &&
 			current.PrevTypeSS0 == current.CurType
-		))
+		) &&
+		// disallow starting on doing a wrong warp
+		!vars.IsWrongWarp(old, current))
 	{
 		return true;
 	}
@@ -394,7 +411,9 @@ split
 			(current.CurLevel == 1 || current.CurLevel == 2) &&
 			old.CurMap == 1 && current.CurMap == 2 &&
 			current.CurType == 1
-		))
+		) &&
+		// disallow when doing a wrong warp
+		!vars.IsWrongWarp(old, current))
 	{		
 		return true;
 	}
