@@ -71,9 +71,11 @@ startup
 	settings.Add("SplitOnMapChange", false,
 		"IL/OTS end split");
 		settings.SetToolTip("SplitOnMapChange",
-		"Splits timer on map change" +
+		"Splits timer on any relevant map change" +
 		"\n\n(note: this can be used to chain multiple IL and OTS segments!)" +
 		"\n(update: now works even when exiting via GOA)");
+		settings.Add("SplitOnMapChange_literal", false,
+		"Split on literally any map change", "SplitOnMapChange");
 	settings.Add("SplitOnSMPEntry", false,
 		"IW end split");
 		settings.SetToolTip("SplitOnSMPEntry",
@@ -354,6 +356,13 @@ start
 
 split
 {
+	// Split on literally any map change
+	if (settings["SplitOnMapChange_literal"] &&
+		vars.HasMapIDChanged(old, current))
+	{
+		return true;
+	}
+	
 	// Cancel if main state is not "running" or
 	// current tribe is not an ingame tribe
 	const int MainState_Running = 11;
