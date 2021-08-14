@@ -348,7 +348,6 @@ start
 			// hub of secret sailor
 			vars.IsThisMap(current, 5, 2, 1, 0)
 		))
-		
 	{
 		return true;
 	}
