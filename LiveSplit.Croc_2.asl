@@ -113,6 +113,8 @@ startup
 		"InGameState changes", "DebugOutput");
 		settings.Add("DO_IsCheatMenuOpen", false,
 		"IsCheatMenuOpen changes", "DebugOutput");
+		settings.Add("DO_AllowReturnToHub", false,
+		"AllowReturnToHub changes", "DebugOutput");
 
 	// Returns true iff the current map ID changed
 	vars.HasMapIDChanged = new Func<dynamic, dynamic, bool>((state1, state2) =>
@@ -264,6 +266,14 @@ update
 		{
 			debugText += "\n┃IsCheatMenuOpen: " + old.IsCheatMenuOpen.ToString() +
 				" -> " + current.IsCheatMenuOpen.ToString();
+		}
+		
+		// AllowReturnToHub changes
+		if (settings["DO_AllowReturnToHub"] &&
+			old.AllowReturnToHub != current.AllowReturnToHub)
+		{
+			debugText += "\n┃AllowReturnToHub: " + old.AllowReturnToHub.ToString() +
+				" -> " + current.AllowReturnToHub.ToString();
 		}
 		
 		// Print output
