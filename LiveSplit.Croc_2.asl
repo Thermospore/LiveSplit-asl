@@ -146,6 +146,18 @@ startup
 
 init
 {
+	// Initialize LastWad
+	//		LastWad is simply the previous map you were in
+	//		old/current CurWad shows you the map change currently happening
+	//		old/current LastWad shows you the previous map change
+	// Reminder that this is entirely different from PrevWad!
+	//		There is a PrevWad in each save slot, as part of your save data
+	//		PrevWad has similar behaviour, but happens on a different timeframe
+	current.LastTribe = 0;
+	current.LastLevel = 0;
+	current.LastMap = 0;
+	current.LastType = 0;
+	
 	var firstModule = modules.First();
 	var baseAddr = firstModule.BaseAddress;
 	int addrScriptMgr;
@@ -176,22 +188,35 @@ init
 
 update
 {
+	// Update LastWad (see definition in `init` for more info)
+	if (vars.HasMapIDChanged(old, current))
+	{
+		current.LastTribe = old.CurTribe;
+		current.LastLevel = old.CurLevel;
+		current.LastMap = old.CurMap;
+		current.LastType = old.CurType;
+	}
+	
 	// Debug output
 	if (settings["DebugOutput"])
 	{
 		string debugText = "";
 		
-		// map changes
+		// Map changes
 		if (settings["DO_MapChanges"] &&
 			vars.HasMapIDChanged(old, current))
 		{
-			debugText += "\n┃Tribe: " + old.CurTribe.ToString() +
+			debugText += "\n┃Tribe: " + old.LastTribe.ToString() +
+					" -> " + old.CurTribe.ToString() +
 					" -> " + current.CurTribe.ToString() +
-				"\n┃Level: " + old.CurLevel.ToString() +
+				"\n┃Level: " + old.LastLevel.ToString() +
+					" -> " + old.CurLevel.ToString() +
 					" -> " + current.CurLevel.ToString() +
-				"\n┃Map:   " + old.CurMap.ToString() +
+				"\n┃Map:   " + old.LastMap.ToString() +
+					" -> " + old.CurMap.ToString() +
 					" -> " + current.CurMap.ToString() +
-				"\n┃Type:  " + old.CurType.ToString() +
+				"\n┃Type:  " + old.LastType.ToString() +
+					" -> " + old.CurType.ToString() +
 					" -> " + current.CurType.ToString();
 		}
 		
