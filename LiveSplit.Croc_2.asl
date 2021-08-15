@@ -103,18 +103,20 @@ startup
 		settings.SetToolTip("DebugOutput",
 		"Prints debug info in Dbgview.exe" +
 		"\n\n(note: allows you to see which changes happened in the same ASL cycle)");
-		settings.Add("DO_MapChanges", false,
+		settings.Add("DO_MapChanges", true,
 		"Map changes", "DebugOutput");
-		settings.Add("DO_PrevWadSS0", false,
+		settings.Add("DO_PrevWadSS0", true,
 		"PrevWadSS0 changes", "DebugOutput");
-		settings.Add("DO_MainState", false,
+		settings.Add("DO_MainState", true,
 		"MainState changes", "DebugOutput");
-		settings.Add("DO_InGameState", false,
+		settings.Add("DO_InGameState", true,
 		"InGameState changes", "DebugOutput");
-		settings.Add("DO_IsCheatMenuOpen", false,
+		settings.Add("DO_IsCheatMenuOpen", true,
 		"IsCheatMenuOpen changes", "DebugOutput");
-		settings.Add("DO_AllowReturnToHub", false,
+		settings.Add("DO_AllowReturnToHub", true,
 		"AllowReturnToHub changes", "DebugOutput");
+		settings.Add("DO_IsMapLoaded", true,
+		"IsMapLoaded changes", "DebugOutput");
 
 	// Returns true iff the current map ID changed
 	vars.HasMapIDChanged = new Func<dynamic, dynamic, bool>((state1, state2) =>
@@ -274,6 +276,14 @@ update
 		{
 			debugText += "\n┃AllowReturnToHub: " + old.AllowReturnToHub.ToString() +
 				" -> " + current.AllowReturnToHub.ToString();
+		}
+		
+		// IsMapLoaded changes
+		if (settings["DO_IsMapLoaded"] &&
+			old.IsMapLoaded != current.IsMapLoaded)
+		{
+			debugText += "\n┃IsMapLoaded: " + old.IsMapLoaded.ToString() +
+				" -> " + current.IsMapLoaded.ToString();
 		}
 		
 		// Print output
