@@ -16,6 +16,11 @@ state("Croc2", "US")
 	
 	// Temporary solution. This only works for Save Slot 0
 	int PrevTribeSS0        : 0x204374;
+	// These last three are only used for hub GOA detection
+	// You could use LastWad + CurWad instead,
+	// BUT it seems every once and a while livesplit will catch the game with its
+	// pants down in the middle of updating the wad values, breaking the logic.
+	// Haven't seen that elsewhere, so I'm hoping it's a GOA specific thing...
 	int PrevLevelSS0        : 0x204378;
 	int PrevMapSS0          : 0x20437C;
 	int PrevTypeSS0         : 0x204380;
@@ -332,7 +337,7 @@ start
 		!vars.IsThisMap(old, 1, 1, 2, 3) &&
 		// disallow starting after loading a save
 		!vars.IsThisMap(old, 0, 0, 4, 3) &&
-		// disallow starting after GOA in gobbo hub or secret hub
+		// disallow starting after GOA in gobbo hub or secret hub (invalid spawn)
 		!(
 			// was on GOA screen
 			vars.IsThisMap(old, 0, 0, 2, 3) &&
@@ -342,7 +347,7 @@ start
 			current.PrevMapSS0 == current.CurMap &&
 			current.PrevTypeSS0 == current.CurType
 		) &&
-		// disallow starting on doing a wrong warp
+		// disallow starting on doing a wrong warp (invalid spawn)
 		!vars.IsWrongWarp(old, current))
 	{
 		return true;
@@ -403,7 +408,7 @@ split
 		vars.HasMapIDChanged(old, current) &&
 		// was on GOA screen
 		vars.IsThisMap(old, 0, 0, 2, 3) &&
-		// disallow split after GOAing in gobbo hub or secret hub
+		// disallow split after GOAing in gobbo hub or secret hub (invalid spawn)
 		!(
 			(
 				vars.IsGobboHub(current) ||
@@ -445,7 +450,7 @@ split
 			old.CurMap == 1 && current.CurMap == 2 &&
 			current.CurType == 1
 		) &&
-		// disallow when doing a wrong warp
+		// disallow when doing a wrong warp (invalid spawn)
 		!vars.IsWrongWarp(old, current))
 	{		
 		return true;
