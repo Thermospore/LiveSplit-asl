@@ -460,6 +460,15 @@ split
 			old.CurMap == 1 && current.CurMap == 2 &&
 			current.CurType == 1
 		) &&
+		// disallow when re-entering for wrong warp
+		!(
+			vars.IsGobboHub(old) && !vars.IsGobboHub(current) &&
+			old.LastTribe == current.CurTribe &&
+			old.LastLevel == current.CurLevel &&
+			old.LastMap == current.CurMap &&
+			old.LastType == current.CurType &&
+			current.AllowReturnToHub == 1
+		) &&
 		// disallow when doing a wrong warp (invalid spawn)
 		!vars.IsWrongWarp(old, current))
 	{		
