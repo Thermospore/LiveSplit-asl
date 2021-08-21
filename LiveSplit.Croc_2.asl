@@ -167,6 +167,8 @@ init
 	current.LastMap = 0;
 	current.LastType = 0;
 	
+	vars.LevelBeforeHubWasMasher = false;
+	
 	var firstModule = modules.First();
 	var baseAddr = firstModule.BaseAddress;
 	int addrScriptMgr;
@@ -197,13 +199,20 @@ init
 
 update
 {
-	// Update LastWad (see definition in `init` for more info)
 	if (vars.HasMapIDChanged(old, current))
 	{
+		// Update LastWad (see definition in `init` for more info)
 		current.LastTribe = old.CurTribe;
 		current.LastLevel = old.CurLevel;
 		current.LastMap = old.CurMap;
 		current.LastType = old.CurType;
+		
+		// Update LevelBeforeHubWasMasher if in caveman hub
+		if (vars.IsThisMap(current, 3, 1, 1, 0))
+		{
+			vars.LevelBeforeHubWasMasher =
+			(vars.IsThisMap(old, 3, 2, 1, 1) || vars.IsThisMap(old, 3, 2, 2, 1));
+		}
 	}
 	
 	// Debug output
@@ -471,13 +480,37 @@ split
 			current.CurType == 1
 		) &&
 		// disallow when re-entering for wrong warp
+		// (currently doesn't work for soveena/flytrap, or if you exit via GOA)
 		!(
-			vars.IsGobboHub(old) && !vars.IsGobboHub(current) &&
-			old.LastTribe == current.CurTribe &&
-			old.LastLevel == current.CurLevel &&
-			old.LastMap == current.CurMap &&
-			old.LastType == current.CurType &&
-			current.AllowReturnToHub == 1
+			// General case
+			(
+				vars.IsGobboHub(old) && !vars.IsGobboHub(current) &&
+				old.LastTribe == current.CurTribe &&
+				old.LastLevel == current.CurLevel &&
+				old.LastMap == current.CurMap &&
+				old.LastType == current.CurType &&
+				current.AllowReturnToHub == 1
+			) ||
+			// Masher (the only wrong warpable level with a cutscene)
+			(
+				// entered caveman hub from masher
+				vars.LevelBeforeHubWasMasher &&
+				// entering masher from caveman hub
+				(
+					// caveman hub -> masher cutscene
+					(vars.IsThisMap(old, 3, 1, 1, 0) &&
+					vars.IsThisMap(current, 3, 1, 1, 3)) ||
+					// (caveman hub -> ) masher cutscene -> masher overworld
+					(old.LastTribe == 3 &&
+					old.LastLevel == 1 &&
+					old.LastMap == 1 &&
+					old.LastType == 0 &&
+					vars.IsThisMap(old, 3, 1, 1, 3) &&
+					vars.IsThisMap(current, 3, 2, 1, 1))
+				) &&
+				// masher objective is complete
+				current.ProgressList[129] % 2 == 1
+			)
 		) &&
 		// disallow when doing a wrong warp (invalid spawn)
 		!vars.IsWrongWarp(old, current))
