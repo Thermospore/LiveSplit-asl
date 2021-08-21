@@ -480,14 +480,14 @@ split
 			current.CurType == 1
 		) &&
 		// disallow when re-entering for wrong warp
-		// (currently doesn't work for soveena/flytrap, or if you exit via GOA)
+		// (currently doesn't work if you exit via GOA)
 		!(
 			// General case
 			(
 				vars.IsGobboHub(old) && !vars.IsGobboHub(current) &&
 				old.LastTribe == current.CurTribe &&
 				old.LastLevel == current.CurLevel &&
-				old.LastMap == current.CurMap &&
+				// allow the map to be different, so this works for levels like flytrap
 				old.LastType == current.CurType &&
 				current.AllowReturnToHub == 1
 			) ||
