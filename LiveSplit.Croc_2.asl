@@ -107,6 +107,8 @@ startup
 		"Map changes", "DebugOutput");
 		settings.Add("DO_PrevWadSS0", true,
 		"PrevWadSS0 changes", "DebugOutput");
+		settings.Add("DO_WadB4GH", true,
+		"WadB4GH changes", "DebugOutput");
 		settings.Add("DO_MainState", true,
 		"MainState changes", "DebugOutput");
 		settings.Add("DO_InGameState", true,
@@ -155,6 +157,13 @@ startup
 
 init
 {
+	// Initialize WadB4GH (Wad Before GOA or Hub)
+	// Used for detecting re-entry for wrong warp, or if you GOA'd in the hub
+	current.TribeB4GH = 0;
+	current.LevelB4GH = 0;
+	current.MapB4GH = 0;
+	current.TypeB4GH = 0;
+	
 	// Initialize LastWad
 	//		LastWad is simply the previous map you were in
 	//		old/current CurWad shows you the map change currently happening
@@ -199,6 +208,21 @@ init
 
 update
 {
+	// Update WadB4GH
+	if (vars.HasMapIDChanged(old, current) &&
+		(
+			// now on GOA screen
+			vars.IsThisMap(current, 0, 0, 2, 3) ||
+			// or hub (but not if we were already on GOA screen)
+			(vars.IsGobboHub(current) && !vars.IsThisMap(old, 0, 0, 2, 3)))
+		)
+	{
+		current.TribeB4GH = old.CurTribe;
+		current.LevelB4GH = old.CurLevel;
+		current.MapB4GH = old.CurMap;
+		current.TypeB4GH = old.CurType;
+	}
+	
 	if (vars.HasMapIDChanged(old, current))
 	{
 		// Update LastWad (see definition in `init` for more info)
@@ -253,6 +277,23 @@ update
 					" -> " + current.PrevMapSS0.ToString() +
 				"\n┃PrevTypeSS0:  " + old.PrevTypeSS0.ToString() +
 					" -> " + current.PrevTypeSS0.ToString();
+		}
+		
+		// WadB4GH changes
+		if (settings["DO_WadB4GH"] &&
+			(old.TribeB4GH != current.TribeB4GH ||
+			old.LevelB4GH != current.LevelB4GH ||
+			old.MapB4GH != current.MapB4GH ||
+			old.TypeB4GH != current.TypeB4GH))
+		{
+			debugText += "\n┃TribeB4GH: " + old.TribeB4GH.ToString() +
+					" -> " + current.TribeB4GH.ToString() +
+				"\n┃LevelB4GH: " + old.LevelB4GH.ToString() +
+					" -> " + current.LevelB4GH.ToString() +
+				"\n┃MapB4GH:   " + old.MapB4GH.ToString() +
+					" -> " + current.MapB4GH.ToString() +
+				"\n┃TypeB4GH:  " + old.TypeB4GH.ToString() +
+					" -> " + current.TypeB4GH.ToString();
 		}
 		
 		// MainState changes
