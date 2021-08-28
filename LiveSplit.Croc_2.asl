@@ -1,9 +1,12 @@
 state("Croc2", "US")
 {
+	// There is a race condition with these four that needs to be resolved
+	// Details: https://discord.com/channels/313375426112389123/408694062862958592/880900162250211338
 	int CurTribe            : 0xA8C44;
 	int CurLevel            : 0xA8C48;
 	int CurMap              : 0xA8C4C;
 	int CurType             : 0xA8C50;
+	
 	int InGameState         : 0xB7880;
 	int IsCheatMenuOpen     : 0xB788C;
 	bool IsMapLoaded        : 0xB78C4;
@@ -155,6 +158,10 @@ init
 	current.LevelB4GH = 0;
 	current.MapB4GH = 0;
 	current.TypeB4GH = 0;
+	
+	// Initialize OldSplitIndex
+	// Used to block double splits. Race condition workaround
+	vars.OldSplitIndex = -1;
 	
 	var firstModule = modules.First();
 	var baseAddr = firstModule.BaseAddress;
@@ -404,6 +411,17 @@ start
 
 split
 {
+	// Block double splits. Race condition workaround
+	if (vars.OldSplitIndex != timer.CurrentSplitIndex)
+	{
+		vars.OldSplitIndex = timer.CurrentSplitIndex;
+		return false;
+	}
+	else
+	{
+		vars.OldSplitIndex = timer.CurrentSplitIndex;
+	}
+	
 	// Split on literally any map change
 	if (settings["SplitOnMapChange_literal"] &&
 		vars.HasMapIDChanged(old, current))
