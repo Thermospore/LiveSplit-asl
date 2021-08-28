@@ -168,8 +168,6 @@ init
 	current.LastMap = 0;
 	current.LastType = 0;
 	
-	vars.LevelBeforeHubWasMasher = false;
-	
 	var firstModule = modules.First();
 	var baseAddr = firstModule.BaseAddress;
 	int addrScriptMgr;
@@ -215,20 +213,13 @@ update
 		current.TypeB4GH = old.CurType;
 	}
 	
+	// Update LastWad (see definition in `init` for more info)
 	if (vars.HasMapIDChanged(old, current))
 	{
-		// Update LastWad (see definition in `init` for more info)
 		current.LastTribe = old.CurTribe;
 		current.LastLevel = old.CurLevel;
 		current.LastMap = old.CurMap;
 		current.LastType = old.CurType;
-		
-		// Update LevelBeforeHubWasMasher if in caveman hub
-		if (vars.IsThisMap(current, 3, 1, 1, 0))
-		{
-			vars.LevelBeforeHubWasMasher =
-			(vars.IsThisMap(old, 3, 2, 1, 1) || vars.IsThisMap(old, 3, 2, 2, 1));
-		}
 	}
 	
 	// Debug output
@@ -511,14 +502,17 @@ split
 				vars.IsGobboHub(old) && !vars.IsGobboHub(current) &&
 				old.LastTribe == current.CurTribe &&
 				old.LastLevel == current.CurLevel &&
-				// allow the map to be different, so this works for levels like flytrap
+					// (allow the map to be different, so this works for levels like flytrap)
 				old.LastType == current.CurType &&
 				current.AllowReturnToHub == 1
 			) ||
 			// Masher (the only wrong warpable level with a cutscene)
 			(
 				// entered caveman hub from masher
-				vars.LevelBeforeHubWasMasher &&
+				current.TribeB4GH == 3 &&
+				current.LevelB4GH == 2 &&
+					// (allow the map to be different, so this works for overworld or boss room)
+				current.TypeB4GH == 1 &&
 				// entering masher from caveman hub
 				(
 					// caveman hub -> masher cutscene
