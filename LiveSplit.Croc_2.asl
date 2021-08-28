@@ -156,18 +156,6 @@ init
 	current.MapB4GH = 0;
 	current.TypeB4GH = 0;
 	
-	// Initialize LastWad
-	//		LastWad is simply the previous map you were in
-	//		old/current CurWad shows you the map change currently happening
-	//		old/current LastWad shows you the previous map change
-	// Reminder that this is entirely different from PrevWad!
-	//		There is a PrevWad in each save slot, as part of your save data
-	//		PrevWad has similar behaviour, but happens on a different timeframe
-	current.LastTribe = 0;
-	current.LastLevel = 0;
-	current.LastMap = 0;
-	current.LastType = 0;
-	
 	var firstModule = modules.First();
 	var baseAddr = firstModule.BaseAddress;
 	int addrScriptMgr;
@@ -213,15 +201,6 @@ update
 		current.TypeB4GH = old.CurType;
 	}
 	
-	// Update LastWad (see definition in `init` for more info)
-	if (vars.HasMapIDChanged(old, current))
-	{
-		current.LastTribe = old.CurTribe;
-		current.LastLevel = old.CurLevel;
-		current.LastMap = old.CurMap;
-		current.LastType = old.CurType;
-	}
-	
 	// Debug output
 	if (settings["DebugOutput"])
 	{
@@ -231,17 +210,13 @@ update
 		if (settings["DO_MapChanges"] &&
 			vars.HasMapIDChanged(old, current))
 		{
-			debugText += "\n┃Tribe: " + old.LastTribe.ToString() +
-					" -> " + old.CurTribe.ToString() +
+			debugText += "\n┃Tribe: " + old.CurTribe.ToString() +
 					" -> " + current.CurTribe.ToString() +
-				"\n┃Level: " + old.LastLevel.ToString() +
-					" -> " + old.CurLevel.ToString() +
+				"\n┃Level: " + old.CurLevel.ToString() +
 					" -> " + current.CurLevel.ToString() +
-				"\n┃Map:   " + old.LastMap.ToString() +
-					" -> " + old.CurMap.ToString() +
+				"\n┃Map:   " + old.CurMap.ToString() +
 					" -> " + current.CurMap.ToString() +
-				"\n┃Type:  " + old.LastType.ToString() +
-					" -> " + old.CurType.ToString() +
+				"\n┃Type:  " + old.CurType.ToString() +
 					" -> " + current.CurType.ToString();
 		}
 		
@@ -495,15 +470,14 @@ split
 			current.CurType == 1
 		) &&
 		// disallow when re-entering for wrong warp
-		// (currently doesn't work if you exit via GOA)
 		!(
 			// General case
 			(
 				vars.IsGobboHub(old) && !vars.IsGobboHub(current) &&
-				old.LastTribe == current.CurTribe &&
-				old.LastLevel == current.CurLevel &&
+				old.TribeB4GH == current.CurTribe &&
+				old.LevelB4GH == current.CurLevel &&
 					// (allow the map to be different, so this works for levels like flytrap)
-				old.LastType == current.CurType &&
+				old.TypeB4GH == current.CurType &&
 				current.AllowReturnToHub == 1
 			) ||
 			// Masher (the only wrong warpable level with a cutscene)
