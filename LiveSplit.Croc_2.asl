@@ -16,14 +16,6 @@ state("Croc2", "US")
 	
 	// Temporary solution. This only works for Save Slot 0
 	int PrevTribeSS0        : 0x204374;
-	// These last three are only used for hub GOA detection
-	// You could use LastWad + CurWad instead,
-	// BUT it seems every once and a while livesplit will catch the game with its
-	// pants down in the middle of updating the wad values, breaking the logic.
-	// Haven't seen that elsewhere, so I'm hoping it's a GOA specific thing...
-	int PrevLevelSS0        : 0x204378;
-	int PrevMapSS0          : 0x20437C;
-	int PrevTypeSS0         : 0x204380;
 }
 
 state("Croc2", "EU")
@@ -105,10 +97,10 @@ startup
 		"\n\n(note: allows you to see which changes happened in the same ASL cycle)");
 		settings.Add("DO_MapChanges", true,
 		"Map changes", "DebugOutput");
-		settings.Add("DO_PrevWadSS0", true,
-		"PrevWadSS0 changes", "DebugOutput");
 		settings.Add("DO_WadB4GH", true,
 		"WadB4GH changes", "DebugOutput");
+		settings.Add("DO_PrevTribeSS0", true,
+		"PrevTribeSS0 changes", "DebugOutput");
 		settings.Add("DO_MainState", true,
 		"MainState changes", "DebugOutput");
 		settings.Add("DO_InGameState", true,
@@ -262,23 +254,6 @@ update
 					" -> " + current.CurType.ToString();
 		}
 		
-		// PrevWadSS0 changes
-		if (settings["DO_PrevWadSS0"] &&
-			(old.PrevTribeSS0 != current.PrevTribeSS0 ||
-			old.PrevLevelSS0 != current.PrevLevelSS0 ||
-			old.PrevMapSS0 != current.PrevMapSS0 ||
-			old.PrevTypeSS0 != current.PrevTypeSS0))
-		{
-			debugText += "\n┃PrevTribeSS0: " + old.PrevTribeSS0.ToString() +
-					" -> " + current.PrevTribeSS0.ToString() +
-				"\n┃PrevLevelSS0: " + old.PrevLevelSS0.ToString() +
-					" -> " + current.PrevLevelSS0.ToString() +
-				"\n┃PrevMapSS0:   " + old.PrevMapSS0.ToString() +
-					" -> " + current.PrevMapSS0.ToString() +
-				"\n┃PrevTypeSS0:  " + old.PrevTypeSS0.ToString() +
-					" -> " + current.PrevTypeSS0.ToString();
-		}
-		
 		// WadB4GH changes
 		if (settings["DO_WadB4GH"] &&
 			(old.TribeB4GH != current.TribeB4GH ||
@@ -294,6 +269,14 @@ update
 					" -> " + current.MapB4GH.ToString() +
 				"\n┃TypeB4GH:  " + old.TypeB4GH.ToString() +
 					" -> " + current.TypeB4GH.ToString();
+		}
+		
+		// PrevTribeSS0 changes
+		if (settings["DO_PrevTribeSS0"] &&
+			old.PrevTribeSS0 != current.PrevTribeSS0)
+		{
+			debugText += "\n┃PrevTribeSS0: " + old.PrevTribeSS0.ToString() +
+				" -> " + current.PrevTribeSS0.ToString();
 		}
 		
 		// MainState changes
@@ -411,11 +394,11 @@ start
 		!(
 			// was on GOA screen
 			vars.IsThisMap(old, 0, 0, 2, 3) &&
-			// previous map is equal to current map (which is already constrained to hub)
-			current.PrevTribeSS0 == current.CurTribe &&
-			current.PrevLevelSS0 == current.CurLevel &&
-			current.PrevMapSS0 == current.CurMap &&
-			current.PrevTypeSS0 == current.CurType
+			// map before GOA is equal to current map (which is already constrained to hub)
+			current.TribeB4GH == current.CurTribe &&
+			current.LevelB4GH == current.CurLevel &&
+			current.MapB4GH == current.CurMap &&
+			current.TypeB4GH == current.CurType
 		) &&
 		// disallow starting on doing a wrong warp (invalid spawn)
 		!vars.IsWrongWarp(old, current))
@@ -487,11 +470,11 @@ split
 				current.CurMap == 1 &&
 				current.CurType == 0)
 			) &&
-			// previous map is equal to current map (hub)
-			current.PrevTribeSS0 == current.CurTribe &&
-			current.PrevLevelSS0 == current.CurLevel &&
-			current.PrevMapSS0 == current.CurMap &&
-			current.PrevTypeSS0 == current.CurType
+			// map before GOA is equal to current map (hub)
+			current.TribeB4GH == current.CurTribe &&
+			current.LevelB4GH == current.CurLevel &&
+			current.MapB4GH == current.CurMap &&
+			current.TypeB4GH == current.CurType
 		))
 	{
 		return true;
