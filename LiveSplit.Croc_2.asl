@@ -519,11 +519,7 @@ split
 					(vars.IsThisMap(old, 3, 1, 1, 0) &&
 					vars.IsThisMap(current, 3, 1, 1, 3)) ||
 					// (caveman hub -> ) masher cutscene -> masher overworld
-					(old.LastTribe == 3 &&
-					old.LastLevel == 1 &&
-					old.LastMap == 1 &&
-					old.LastType == 0 &&
-					vars.IsThisMap(old, 3, 1, 1, 3) &&
+					(vars.IsThisMap(old, 3, 1, 1, 3) &&
 					vars.IsThisMap(current, 3, 2, 1, 1))
 				) &&
 				// masher objective is complete
