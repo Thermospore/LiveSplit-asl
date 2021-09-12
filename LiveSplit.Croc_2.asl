@@ -72,8 +72,7 @@ startup
 		"IL/OTS end split");
 		settings.SetToolTip("SplitOnMapChange",
 		"Splits timer on any relevant map change" +
-		"\n\n(note: this can be used to chain multiple IL and OTS segments!)" +
-		"\n(update: now works even when exiting via GOA)");
+		"\n\n(note: this can be used to chain multiple IL and OTS segments!)");
 		settings.Add("SplitOnMapChange_literal", false,
 		"Split on literally any map change", "SplitOnMapChange");
 	settings.Add("SplitOnSMPEntry", false,
