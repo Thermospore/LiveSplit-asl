@@ -86,10 +86,10 @@ startup
 		"(note: you probably want to disable this if doing IL splits)");
 		settings.Add("SplitOnGoldenGobbo", false,
 		"100% (require Golden Gobbo)", "SplitOnObjectiveCompletion");
+		settings.Add("SplitOnDanteCrystals", false,
+		"Split on collecting crystals in Dante's World", "SplitOnObjectiveCompletion");
 	settings.Add("SplitOnBabies", false,
 		"Split on 7, 15, 21, and 26 babies");
-	settings.Add("SplitOnDanteCrystals", false,
-		"Split on collecting crystals in Dante's World");
 
 	// Debug
 	settings.Add("DebugOutput", false,
@@ -571,6 +571,17 @@ split
 			// Skip unchanged entries
 			int oldFlags = old.ProgressList[i], newFlags = current.ProgressList[i];
 			if (oldFlags == newFlags) continue;
+			
+			// 100% ending split on final egg
+			const int CrystalFlags = 0x1f;
+			if (vars.IsThisMap(current, 5, 4, 1, 0) &&
+				(oldFlags & ~CrystalFlags) != (newFlags & ~CrystalFlags))
+			{
+				return true;
+			}
+			
+			// Stop if not using split on objective completion
+			if (!settings["SplitOnObjectiveCompletion"]) continue;
 
 			// Dante's World (Secret Village)
 			if (tribe == 5)
@@ -581,18 +592,11 @@ split
 					return true;
 				}
 				// Or only split on eggs
-				else
+				else if ((oldFlags & ~CrystalFlags) != (newFlags & ~CrystalFlags))
 				{
-					const int CrystalFlags = 0x1f;
-					if ((oldFlags & ~CrystalFlags) != (newFlags & ~CrystalFlags))
-					{
-						return true;
-					}
+					return true;
 				}
 			}
-			
-			// Stop if not using split on objective completion
-			else if (!settings["SplitOnObjectiveCompletion"]) continue;
 
 			// Split on any progress change for certain levels
 			else if (
