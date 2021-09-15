@@ -479,6 +479,8 @@ split
 		vars.HasMapIDChanged(old, current) &&
 		// disallow the split after the opening cutscene when you start a new game
 		!vars.IsThisMap(old, 1, 1, 2, 3) &&
+		// disallow the split between dante and ending cutscene
+		!(vars.IsThisMap(old, 4, 2, 1, 1) && vars.IsThisMap(current, 4, 2, 1, 3)) &&
 		// disallow when changing maps within soveena, flytrap, and masher
 		!(
 			(current.CurTribe == 1 || current.CurTribe == 3) &&
