@@ -46,7 +46,7 @@ startup
 	settings.Add("SaveSlotStart", true,
 		"Save slot start");
 		settings.SetToolTip("SaveSlotStart",
-		"Starts timer on overwriting or creating in a save slot");
+		"Starts timer on creating a new save file");
 	settings.Add("ILstart", false,
 		"IL start");
 		settings.SetToolTip("ILstart",
