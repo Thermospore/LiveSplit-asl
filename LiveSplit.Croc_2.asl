@@ -13,6 +13,7 @@ state("Croc2", "US")
 	int NewMainState        : 0xB7930;
 	int IsNewMainStateValid : 0xB7934;
 	int MainState           : 0xB793C;
+	int GemCounter          : 0x12AECC;
 	int GobboCounter        : 0x12AEE0;
 	int AllowReturnToHub    : 0x12AEFC;
 	int DFCrystal5IP        : 0x223D10;
@@ -90,6 +91,10 @@ startup
 		"Split on collecting crystals in Dante's World", "SplitOnObjectiveCompletion");
 	settings.Add("SplitOnBabies", false,
 		"Split on 7, 15, 21, and 26 babies");
+	settings.Add("SplitOnGem", false,
+		"Split on collecting gems");
+		settings.SetToolTip("SplitOnGem",
+		"(note: useful for IL runs)");
 
 	// Debug
 	settings.Add("DebugOutput", false,
@@ -546,6 +551,13 @@ split
 		current.GobboCounter == 15 ||
 		current.GobboCounter == 21 ||
 		current.GobboCounter == 26))
+	{
+		return true;
+	}
+	
+	// Split on collecting a gem (useful for IL runs)
+	if (settings["SplitOnGem"] &&
+		current.GemCounter == old.GemCounter+1)
 	{
 		return true;
 	}
