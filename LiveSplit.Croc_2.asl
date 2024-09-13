@@ -91,6 +91,8 @@ startup
 		"Split on collecting crystals in Dante's World", "SplitOnObjectiveCompletion");
 	settings.Add("SplitOnBabies", false,
 		"Split on 7, 15, 21, and 26 babies");
+		settings.Add("SplitOnBabiesPlusOne", false,
+		"Offset by 1 for Max% (8, 16, 22, and 27 babies)", "SplitOnBabies");
 	settings.Add("SplitOnGem", false,
 		"Split on collecting gems");
 		settings.SetToolTip("SplitOnGem",
@@ -544,13 +546,14 @@ split
 	}
 
 	// Split on main babies areas
+	int babiesOffset = Convert.ToInt32(settings["SplitOnBabiesPlusOne"]);
 	if (current.CurTribe == 4 &&
 		settings["SplitOnBabies"] &&
 		old.GobboCounter != current.GobboCounter && (
-		current.GobboCounter == 7 ||
-		current.GobboCounter == 15 ||
-		current.GobboCounter == 21 ||
-		current.GobboCounter == 26))
+		current.GobboCounter == 7 + babiesOffset ||
+		current.GobboCounter == 15 + babiesOffset ||
+		current.GobboCounter == 21 + babiesOffset ||
+		current.GobboCounter == 26 + babiesOffset))
 	{
 		return true;
 	}
