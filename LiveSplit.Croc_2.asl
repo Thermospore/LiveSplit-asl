@@ -65,8 +65,8 @@ startup
 		settings.SetToolTip("IWstart",
 		"Starts timer on map change when you exit SMP to hub" +
 		"\n\n(note: using the cheat menu to warp is equivalent)" +
-		"\n(fun fact: WW, SQ, DA, and GOA are not equivalent" +
-			"; they give a different hub spawn!)");
+		"\n(fun fact: WW, SQ, GOA, (and sometimes DA) are not equivalent;" +
+			"\nthey give a different hub spawn!)");
 
 	// Split
 	settings.Add("SplitOnMapChange", false,
@@ -446,7 +446,7 @@ split
 	}
 
 	// Prevent IL/OTS end from being skipped when exiting via GOA
-	// (old progress list not available at this point, which is why this must go up here?)
+	// (is "old progress list" not available during this map change? which is why this must go up here?)
 	if (settings["SplitOnMapChange"] &&
 		vars.HasMapIDChanged(old, current) &&
 		// was on GOA screen
@@ -466,6 +466,18 @@ split
 			current.MapB4GH == current.CurMap &&
 			current.TypeB4GH == current.CurType
 		))
+	{
+		return true;
+	}
+	
+	// Prevent IL/OTS end from being skipped when exiting credits screen (ex: after Dante) into Inca hub
+	// (the "old progress list" is not available when this map change happens)
+	if (settings["SplitOnMapChange"] &&
+		vars.HasMapIDChanged(old, current) &&
+		// was on credits screen
+		vars.IsThisMap(old, 0, 0, 5, 0) &&
+		// now in Inca hub
+		vars.IsThisMap(current, 4, 1, 1, 0))
 	{
 		return true;
 	}
