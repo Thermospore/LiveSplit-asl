@@ -2,6 +2,9 @@ state("Croc2", "US")
 {
 	// There is a race condition with these four that needs to be resolved
 	// Details: https://discord.com/channels/313375426112389123/408694062862958592/880900162250211338
+	int CrocX               : 0xA8C3C, 0x14, 0x28, 0x2c;
+	int CrocY               : 0xA8C3C, 0x14, 0x28, 0x30;
+	int CrocZ               : 0xA8C3C, 0x14, 0x28, 0x34;
 	int CurTribe            : 0xA8C44;
 	int CurLevel            : 0xA8C48;
 	int CurMap              : 0xA8C4C;
@@ -120,6 +123,12 @@ startup
 		"AllowReturnToHub changes", "DebugOutput");
 		settings.Add("DO_IsMapLoaded", true,
 		"IsMapLoaded changes", "DebugOutput");
+		
+	// Speed display
+	// should probably move this to a Cheat Engine GUI or something
+	// https://wiki.cheatengine.org/index.php?title=Tutorial:LuaFormGUI
+	settings.Add("SpeedDisplay", false,
+		"Print out Croc's speed in DebugView");
 
 	// Returns true iff the current map ID changed
 	vars.HasMapIDChanged = new Func<dynamic, dynamic, bool>((state1, state2) =>
@@ -195,6 +204,9 @@ init
 	}
 
 	vars.ScriptCodeStart = new DeepPointer(addrScriptMgr, 0x1C);
+	
+	// Initialize variable for speed display
+	vars.curMS = 0;
 }
 
 update
@@ -213,6 +225,40 @@ update
 		current.MapB4GH = old.CurMap;
 		current.TypeB4GH = old.CurType;
 	}
+	
+	// Speed display
+	if (settings["SpeedDisplay"])
+	{
+		// Calculate number of in game frames since the last livesplit cycle
+		// (there is probably some variable built into in livesplit we can replace oldMS/curMS with...)
+		vars.oldMS = vars.curMS;
+		vars.curMS = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
+		vars.ingameframes = (vars.curMS - vars.oldMS)/1000.0 / (1.0/30.0);
+		
+		// (units per frame)
+		// Only looks at Croc's distance on the XZ plane (ignores vertical movement)
+		vars.upf2D = Math.Sqrt(
+				Math.Pow(current.CrocX-old.CrocX, 2.0) +
+				Math.Pow(current.CrocZ-old.CrocZ, 2.0));
+		
+		// Includes vertical movement (full 3D movement)
+		vars.upf3D = Math.Sqrt(
+				Math.Pow(current.CrocX-old.CrocX, 2.0) +
+				Math.Pow(current.CrocZ-old.CrocZ, 2.0) +
+				Math.Pow(current.CrocY-old.CrocY, 2.0));
+		
+		// We are oversampling (livesplit is ~60fps while the game is 30fps).
+		// If we sample the game again before it is on the next frame, then croc's position will not have changed,
+		// so we can toss out any results where upf3D == 0 (no movement).
+		// Conversely, if it has been any more than the length of 1 game frame since the last livesplit cycle,
+		// then we *could* have 2 or more frames of Croc movement in our result,
+		// so we require it has been less than 1 in game frame since the last cycle
+		if (vars.upf3D != 0 &&	vars.ingameframes < 1.0)
+		{
+			print("units per frame 2D: " + vars.upf2D.ToString() +
+				"\nunits per frame 3D: " + vars.upf3D.ToString());
+		}	
+	}	
 	
 	// Debug output
 	if (settings["DebugOutput"])
