@@ -1,10 +1,11 @@
 state("Croc2", "US")
 {
-	// There is a race condition with these four that needs to be resolved
-	// Details: https://discord.com/channels/313375426112389123/408694062862958592/880900162250211338
 	int CrocX               : 0xA8C3C, 0x14, 0x28, 0x2c;
 	int CrocY               : 0xA8C3C, 0x14, 0x28, 0x30;
 	int CrocZ               : 0xA8C3C, 0x14, 0x28, 0x34;
+	
+	// There is a race condition with these four that needs to be resolved
+	// Details: https://discord.com/channels/313375426112389123/408694062862958592/880900162250211338
 	int CurTribe            : 0xA8C44;
 	int CurLevel            : 0xA8C48;
 	int CurMap              : 0xA8C4C;
@@ -25,6 +26,7 @@ state("Croc2", "US")
 	int PrevTribeSS0        : 0x204374;
 }
 
+// (EU support is currently falling a bit behind...)
 state("Croc2", "EU")
 {
 	int CurTribe            : 0xA9C44;
