@@ -127,10 +127,34 @@ startup
 		"IsMapLoaded changes", "DebugOutput");
 		
 	// Speed display
-	// should probably move this to a Cheat Engine GUI or something
-	// https://wiki.cheatengine.org/index.php?title=Tutorial:LuaFormGUI
+	// should probably move this to a Cheat Engine GUI or a separate asl script or something
+	//      https://wiki.cheatengine.org/index.php?title=Tutorial:LuaFormGUI
+	// SetTextComponent is taken from: https://github.com/zment4/DefyGravityASL
+	vars.SetTextComponent = (Action<string, string, bool>)((id, text, create) => {
+		dynamic textSetting = timer.Layout.Components
+			.Where(x => x.GetType().Name == "TextComponent")
+			.Select(x => (x as dynamic).Settings)
+			.FirstOrDefault(x => (x as dynamic).Text1 == id);
+			
+		if (textSetting == null && create) 
+		{
+			var textComponentAssembly = Assembly.LoadFrom("Components\\LiveSplit.Text.dll");
+			dynamic textComponent = Activator.CreateInstance(textComponentAssembly.GetType("LiveSplit.UI.Components.TextComponent"), timer);
+			timer.Layout.LayoutComponents.Add(new LiveSplit.UI.Components.LayoutComponent("LiveSplit.Text.dll", textComponent as LiveSplit.UI.Components.IComponent));
+			
+			textSetting = textComponent.Settings;
+			textSetting.Text1 = id;
+		}
+		
+		if (textSetting != null)
+			textSetting.Text2 = text;
+	});
 	settings.Add("SpeedDisplay", false,
-		"Print out Croc's speed in DebugView");
+		"Display Croc's speed in a LiveSplit text component");
+		settings.SetToolTip("SpeedDisplay",
+		"note 1: The text component is created automatically once Croc starts walking around" +
+		"\n\nnote 2: Croc 2 runs at 30fps. This display catches most but NOT ALL of the frames" +
+		"\n\nnote 3: Unfortunately, when Croc isn't moving the display just holds the last non-zero value");
 
 	// Returns true iff the current map ID changed
 	vars.HasMapIDChanged = new Func<dynamic, dynamic, bool>((state1, state2) =>
@@ -252,14 +276,19 @@ update
 		// We are oversampling (livesplit is ~60fps while the game is 30fps).
 		// If we sample the game again before it is on the next frame, then croc's position will not have changed,
 		// so we can toss out any results where upf3D == 0 (no movement).
+		//
+		// (an unfortunate side effect of this is that even if croc is legitimately not moving, the display will hold the last non-zero value...)
+		//
 		// Conversely, if it has been any more than the length of 1 game frame since the last livesplit cycle,
 		// then we *could* have 2 or more frames of Croc movement in our result,
 		// so we require it has been less than 1 in game frame since the last cycle
 		if (vars.upf3D != 0 &&	vars.ingameframes < 1.0)
 		{
-			print("units per frame 2D: " + vars.upf2D.ToString() +
-				"\nunits per frame 3D: " + vars.upf3D.ToString());
-		}	
+			// print("units per frame 2D: " + vars.upf2D.ToString() +
+			// 	"\nunits per frame 3D: " + vars.upf3D.ToString());
+			vars.SetTextComponent("UPF (2D)", vars.upf2D.ToString("0.0000"), true);
+			vars.SetTextComponent("UPF (3D)", vars.upf3D.ToString("0.0000"), true);
+		}
 	}	
 	
 	// Debug output
