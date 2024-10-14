@@ -17,6 +17,7 @@ state("Croc2", "US")
 	int NewMainState        : 0xB7930;
 	int IsNewMainStateValid : 0xB7934;
 	int MainState           : 0xB793C;
+	int Inputs              : 0x12A590;
 	int GemCounter          : 0x12AECC;
 	int GobboCounter        : 0x12AEE0;
 	int AllowReturnToHub    : 0x12AEFC;
@@ -53,6 +54,10 @@ startup
 		"Save slot start");
 		settings.SetToolTip("SaveSlotStart",
 		"Starts timer on creating a new save file");
+	settings.Add("InputStart", false,
+		"Start on any input");
+		settings.SetToolTip("InputStart",
+		"Useful for testing / timing things");
 	settings.Add("ILstart", false,
 		"IL start");
 		settings.SetToolTip("ILstart",
@@ -420,6 +425,13 @@ start
 		current.CurTribe < 1 || current.CurTribe > 5 || current.CurType == 3)
 	{
 		return false;
+	}
+	
+	// Start on any input
+	if (settings["InputStart"] &&
+		current.Inputs != old.Inputs)
+	{
+		return true;
 	}
 
 	// IL start
