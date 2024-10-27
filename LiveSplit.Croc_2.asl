@@ -30,19 +30,28 @@ state("Croc2", "US")
 // (EU support is currently falling a bit behind...)
 state("Croc2", "EU")
 {
+	int CrocX               : 0xA9C3C, 0x14, 0x28, 0x2c;
+	int CrocY               : 0xA9C3C, 0x14, 0x28, 0x30;
+	int CrocZ               : 0xA9C3C, 0x14, 0x28, 0x34;
+	
 	int CurTribe            : 0xA9C44;
 	int CurLevel            : 0xA9C48;
 	int CurMap              : 0xA9C4C;
 	int CurType             : 0xA9C50;
+
 	int InGameState         : 0xBEA70;
 	int IsCheatMenuOpen     : 0xBEA7C;
 	bool IsMapLoaded        : 0xBEAB4;
 	int NewMainState        : 0xBEB20;
 	int IsNewMainStateValid : 0xBEB24;
 	int MainState           : 0xBEB2C;
+	int Inputs              : 0x131780;
+	int GemCounter          : 0x1320BC;
 	int GobboCounter        : 0x1320D0;
 	int AllowReturnToHub    : 0x1320EC;
 	int DFCrystal5IP        : 0x22AF00;
+
+	int PrevTribeSS0        : 0x20B564;
 }
 
 startup
