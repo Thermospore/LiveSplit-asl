@@ -595,7 +595,9 @@ split
 		// was on credits screen
 		vars.IsThisMap(old, 0, 0, 5, 0) &&
 		// now in Inca hub
-		vars.IsThisMap(current, 4, 1, 1, 0))
+		// (but if we specify the full map ID, then we risk race condition issues,
+		//  so just specifying Inca tribe is sufficient)
+		current.CurTribe == 4)
 	{
 		return true;
 	}
