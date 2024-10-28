@@ -27,7 +27,6 @@ state("Croc2", "US")
 	int PrevTribeSS0        : 0x204374;
 }
 
-// (EU support is currently falling a bit behind...)
 state("Croc2", "EU")
 {
 	int CrocX               : 0xA9C3C, 0x14, 0x28, 0x2c;
