@@ -210,10 +210,6 @@ startup
 
 init
 {
-	// Initialize OldSplitIndex
-	// Used to block double splits. Race condition workaround
-	vars.OldSplitIndex = -1;
-	
 	var firstModule = modules.First();
 	var baseAddr = firstModule.BaseAddress;
 	int addrScriptMgr;
@@ -240,6 +236,10 @@ init
 	}
 
 	vars.ScriptCodeStart = new DeepPointer(addrScriptMgr, 0x1C);
+	
+	// Initialize OldSplitIndex
+	// Used to block double splits. Race condition workaround
+	vars.OldSplitIndex = -1;
 	
 	// Initialize variable for speed display
 	vars.curMS = 0;
