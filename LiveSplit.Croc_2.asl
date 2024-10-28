@@ -591,7 +591,6 @@ split
 	// Prevent IL/OTS end from being skipped when exiting credits screen (ex: after Dante) into Inca hub
 	// (the "old progress list" is not available when this map change happens)
 	if (settings["SplitOnMapChange"] &&
-		vars.HasMapIDChanged(old, current) &&
 		// was on credits screen
 		vars.IsThisMap(old, 0, 0, 5, 0) &&
 		// now in Inca hub
