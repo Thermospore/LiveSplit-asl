@@ -251,20 +251,22 @@ init
 update
 {
 	// Initialize WadB4GH (Wad Before GOA or Hub)
-	// Used for detecting re-entry for wrong warp, or if you GOA'd in the hub.
+	// 
+	// WadB4GH is used for detecting re-entry for wrong warp, or if you GOA'd in the hub.
+	//
 	// Unfortunately this can't simply be initialized in startup or init,
 	// because when livesplit detects the EU version, the old/current variables get wiped.
 	if (!vars.WadB4GHIsInitialized)
 	{
-		old.TribeB4GH = 0;
-		old.LevelB4GH = 0;
-		old.MapB4GH = 0;
-		old.TypeB4GH = 0;
+		old.TribeB4GH = -1;
+		old.LevelB4GH = -1;
+		old.MapB4GH = -1;
+		old.TypeB4GH = -1;
 		
-		current.TribeB4GH = 0;
-		current.LevelB4GH = 0;
-		current.MapB4GH = 0;
-		current.TypeB4GH = 0;
+		current.TribeB4GH = -1;
+		current.LevelB4GH = -1;
+		current.MapB4GH = -1;
+		current.TypeB4GH = -1;
 		
 		vars.WadB4GHIsInitialized = true;
 	}
