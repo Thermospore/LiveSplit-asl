@@ -87,7 +87,7 @@ startup
 			"\nthey give a different hub spawn!)");
 
 	// Split
-	settings.Add("SplitOnMapChange", false,
+	settings.Add("SplitOnMapChange", true,
 		"IL/OTS end split");
 		settings.SetToolTip("SplitOnMapChange",
 		"Splits timer on any relevant map change" +
@@ -99,7 +99,7 @@ startup
 		settings.SetToolTip("SplitOnSMPEntry",
 		"Splits timer on map change into SMP" +
 		"\n\n(note: this option is redundant if IL/OTS end split is enabled)");
-	settings.Add("SplitOnObjectiveCompletion", true,
+	settings.Add("SplitOnObjectiveCompletion", false,
 		"Split on objective completion");
 		settings.SetToolTip("SplitOnObjectiveCompletion",
 		"(note: you probably want to disable this if doing IL splits)");
