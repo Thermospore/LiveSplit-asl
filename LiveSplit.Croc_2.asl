@@ -3,14 +3,10 @@ state("Croc2", "US")
 	int CrocX               : 0xA8C3C, 0x14, 0x28, 0x2c;
 	int CrocY               : 0xA8C3C, 0x14, 0x28, 0x30;
 	int CrocZ               : 0xA8C3C, 0x14, 0x28, 0x34;
-	
-	// There is a race condition with these four that needs to be resolved
-	// Details: https://discord.com/channels/313375426112389123/408694062862958592/880900162250211338
 	int CurTribe            : 0xA8C44;
 	int CurLevel            : 0xA8C48;
 	int CurMap              : 0xA8C4C;
 	int CurType             : 0xA8C50;
-	
 	int InGameState         : 0xB7880;
 	int IsCheatMenuOpen     : 0xB788C;
 	bool IsMapLoaded        : 0xB78C4;
@@ -32,12 +28,10 @@ state("Croc2", "EU")
 	int CrocX               : 0xA9C3C, 0x14, 0x28, 0x2c;
 	int CrocY               : 0xA9C3C, 0x14, 0x28, 0x30;
 	int CrocZ               : 0xA9C3C, 0x14, 0x28, 0x34;
-	
 	int CurTribe            : 0xA9C44;
 	int CurLevel            : 0xA9C48;
 	int CurMap              : 0xA9C4C;
 	int CurType             : 0xA9C50;
-
 	int InGameState         : 0xBEA70;
 	int IsCheatMenuOpen     : 0xBEA7C;
 	bool IsMapLoaded        : 0xBEAB4;
@@ -236,10 +230,6 @@ init
 
 	vars.ScriptCodeStart = new DeepPointer(addrScriptMgr, 0x1C);
 	
-	// Initialize OldSplitIndex
-	// Used to block double splits. Race condition workaround
-	vars.OldSplitIndex = -1;
-	
 	// Initialize variable for speed display
 	vars.curMS = 0;
 	
@@ -249,6 +239,132 @@ init
 
 update
 {
+	// ==== Race condition detection + correction ====
+	//
+	// This is done first thing in the cycle, to prevent corrupt map IDs from leaking in
+	//
+	// description of the issue we are solving:
+	// https://discord.com/channels/313375426112389123/408694062862958592/880900162250211338
+	
+	// == Define map ID addresses ==
+	// It would be convenient if we could just retrieve the addresses from `state` somehow,
+	// but that doesn't seem possible? source:
+	// https://discord.com/channels/144133978759233536/144134231201808385/1301531238779195453
+	var baseAddr = modules.First().BaseAddress; // ie for US this is 0x400000
+	switch (version)
+	{
+		case "US":
+			vars.AddrCurTribe = baseAddr + 0xA8C44;
+			vars.AddrCurLevel = baseAddr + 0xA8C48;
+			vars.AddrCurMap   = baseAddr + 0xA8C4C;
+			vars.AddrCurType  = baseAddr + 0xA8C50;
+			break;
+		case "EU":
+			vars.AddrCurTribe = baseAddr + 0xA9C44;
+			vars.AddrCurLevel = baseAddr + 0xA9C48;
+			vars.AddrCurMap   = baseAddr + 0xA9C4C;
+			vars.AddrCurType  = baseAddr + 0xA9C50;
+			break;
+		default:
+			return;
+	}
+	
+	// == Manually read the map ID again (currentPlusAlpha) ==
+	// We will use it to verify LiveSplit's read (current)
+	int currentPlusAlphaCurTribe = memory.ReadValue<int>((IntPtr)vars.AddrCurTribe);
+	int currentPlusAlphaCurLevel = memory.ReadValue<int>((IntPtr)vars.AddrCurLevel);
+	int currentPlusAlphaCurMap   = memory.ReadValue<int>((IntPtr)vars.AddrCurMap);
+	int currentPlusAlphaCurType  = memory.ReadValue<int>((IntPtr)vars.AddrCurType);
+	
+	// == Race condition detection ==
+	// current is a race condition read iff old != current != currentPlusAlpha, assuming:
+	// 1. the game is able progress between current and currentPlusAlpha
+	// 2. LiveSplit is polling fast enough that you can't legitimately traverse through 3 different maps lol
+	//
+	// Here is a diagram of all possible scenarios:
+	//
+	// o = old, c = current, a = currentPlusAlpha
+	// ------------ time ----------->
+	//
+	// And for example let's say:
+	// old map ID = 0, 0, 5, 0 (4 ints)
+	// new map ID = 4, 1, 1, 0
+	//
+	// Haven't hit the new map yet. o == c == a == 0, 0, 5, 0 (the old map ID)
+	//  o   c a
+	// old map  |  new map
+	//
+	// currentPlusAlpha got a race condition read, so it is a mixture of the old and new ID,
+	// for example like 0, 0, 1, 0. But current is still valid (0, 0, 5, 0), and that's all that matters
+	//    o   c a
+	// old map  |  new map
+	//
+	// currentPlusAlpha read the next map (4, 1, 1, 0). who cares.
+	//     o   c a
+	// old map  |  new map
+	//
+	// !!! current got a race condition read !!!
+	// this is the only situation where o != c != a, so that's how we can tell
+	//      o   c a
+	// old map  |  new map
+	//
+	// This is a standard map change! o and c are squarely in the old and new maps
+	//        o   c a
+	// old map  |  new map
+	//
+	// This is not possible, because o is just c from last cycle,
+	// and we will clean any race conditions out of c
+	//          o   c a
+	// old map  |  new map
+	if (vars.HasMapIDChanged(old, current) &&
+		!vars.IsThisMap(current,
+			currentPlusAlphaCurTribe,
+			currentPlusAlphaCurLevel,
+			currentPlusAlphaCurMap,
+			currentPlusAlphaCurType))
+	{
+		print("****************** RACE CONDITION DETECTED **********************\n" +
+			old.CurTribe             + ", " + old.CurLevel             + ", " +
+			old.CurMap               + ", " + old.CurType              + " old.CurWad\n" + 
+			current.CurTribe         + ", " + current.CurLevel         + ", " +
+			current.CurMap           + ", " + current.CurType          + " current.CurWad\n" + 
+			currentPlusAlphaCurTribe + ", " + currentPlusAlphaCurLevel + ", " +
+			currentPlusAlphaCurMap   + ", " + currentPlusAlphaCurType  + " currentPlusAlphaCurWad\n" +
+			"******* OVERWRITING current.CurWad WITH currentPlusAlphaCurWad *******");
+		
+		// == Race condition correction ==
+		//
+		// Historically, up until now when the race condition occurred:
+		// we split on the first map change (old map -> race condition),
+		// then blocked the double split from the immediately following map change (race condition -> new map)
+		//
+		// So instead of overwriting current with old (thus delaying the map change / split until next cycle),
+		// let's overwrite it with currentPlusAlpha (so we split right away like we historically have,
+		// while still correcting the corrupt data!)
+		current.CurTribe = currentPlusAlphaCurTribe;
+		current.CurLevel = currentPlusAlphaCurLevel;
+		current.CurMap = currentPlusAlphaCurMap;
+		current.CurType = currentPlusAlphaCurType;
+	}
+	// == misc notes ==
+	//
+	// I've assumed that the game slowly writes the 4 map ID ints one by one,
+	// then LiveSplit suddenly comes in and reads memory while the game has its pants down.
+	// BUT, it's possible it could be the other way around? as in: 
+	// LiveSplit slowly reads the 4 addresses one by one, then the game suddenly writes memory in the middle of that.
+	// If that's the case, the race condition could potentially be solved simply by
+	// reading the map ID in LiveSplit as a single 4 int block...
+	//
+	// Also, it's possible that "race condition" isn't the right terminology for what's happening here,
+	// but at this point we've been calling it that for years *shrug*
+	//
+	// An easy place to test is at the entrance of Masher;
+	// Just put a rubber band on your controller to hold analog stick right + pause,
+	// and you will go hub -> cutscene -> masher -> hub in a loop.
+	// But still it will probably take ~5 minutes to get it even once...
+	//
+	// ==== (end race condition detection + correction) ====
+	
 	// Initialize WadB4GH (Wad Before GOA or Hub)
 	// 
 	// WadB4GH is used for detecting re-entry for wrong warp, or if you GOA'd in the hub.
@@ -334,13 +450,17 @@ update
 			vars.HasMapIDChanged(old, current))
 		{
 			debugText += "\n┃Tribe: " + old.CurTribe.ToString() +
-					" -> " + current.CurTribe.ToString() +
-				"\n┃Level: " + old.CurLevel.ToString() +
-					" -> " + current.CurLevel.ToString() +
-				"\n┃Map:   " + old.CurMap.ToString() +
-					" -> " + current.CurMap.ToString() +
-				"\n┃Type:  " + old.CurType.ToString() +
-					" -> " + current.CurType.ToString();
+				        " -> " + current.CurTribe.ToString() +
+				          " (" + currentPlusAlphaCurTribe.ToString() +
+				")\n┃Level: " + old.CurLevel.ToString() +
+				        " -> " + current.CurLevel.ToString() +
+				          " (" + currentPlusAlphaCurLevel.ToString() +
+				")\n┃Map:   " + old.CurMap.ToString() +
+				        " -> " + current.CurMap.ToString() +
+				          " (" + currentPlusAlphaCurMap.ToString() +
+				")\n┃Type:  " + old.CurType.ToString() +
+				        " -> " + current.CurType.ToString() +
+				          " (" + currentPlusAlphaCurType.ToString() + ")";
 		}
 		
 		// WadB4GH changes
@@ -351,13 +471,13 @@ update
 			old.TypeB4GH != current.TypeB4GH))
 		{
 			debugText += "\n┃TribeB4GH: " + old.TribeB4GH.ToString() +
-					" -> " + current.TribeB4GH.ToString() +
+				           " -> " + current.TribeB4GH.ToString() +
 				"\n┃LevelB4GH: " + old.LevelB4GH.ToString() +
-					" -> " + current.LevelB4GH.ToString() +
+				           " -> " + current.LevelB4GH.ToString() +
 				"\n┃MapB4GH:   " + old.MapB4GH.ToString() +
-					" -> " + current.MapB4GH.ToString() +
+				           " -> " + current.MapB4GH.ToString() +
 				"\n┃TypeB4GH:  " + old.TypeB4GH.ToString() +
-					" -> " + current.TypeB4GH.ToString();
+				           " -> " + current.TypeB4GH.ToString();
 		}
 		
 		// PrevTribeSS0 changes
@@ -534,17 +654,6 @@ start
 
 split
 {
-	// Block double splits. Race condition workaround
-	if (vars.OldSplitIndex != timer.CurrentSplitIndex)
-	{
-		vars.OldSplitIndex = timer.CurrentSplitIndex;
-		return false;
-	}
-	else
-	{
-		vars.OldSplitIndex = timer.CurrentSplitIndex;
-	}
-	
 	// Split on literally any map change
 	if (settings["SplitOnMapChange_literal"] &&
 		vars.HasMapIDChanged(old, current))
@@ -587,12 +696,12 @@ split
 		return true;
 	}
 	
-	// Prevent IL/OTS end from being skipped when exiting credits screen (ex: after Dante) into Inca hub
+	// Prevent IL/OTS end from being skipped when exiting credits screen (ex: into Inca hub after beating Dante)
 	// (the "old progress list" is not available when this map change happens)
 	if (settings["SplitOnMapChange"] &&
-		// the map has changed, and we were on the credits screen
-		// (trying to further specify the Inca hub map risks a race condition, and is unnecessary)
-		vars.HasMapIDChanged(old, current) && vars.IsThisMap(old, 0, 0, 5, 0))
+		vars.HasMapIDChanged(old, current) &&
+		// we came from the credits screen
+		vars.IsThisMap(old, 0, 0, 5, 0))
 	{
 		return true;
 	}
