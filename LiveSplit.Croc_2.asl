@@ -17,6 +17,7 @@ state("Croc2", "US")
 	int GemCounter          : 0x12AECC;
 	int GobboCounter        : 0x12AEE0;
 	int AllowReturnToHub    : 0x12AEFC;
+	int CurSaveSlotIdx      : 0x2220FC;
 	int DFCrystal5IP        : 0x223D10;
 }
 
@@ -39,6 +40,7 @@ state("Croc2", "EU")
 	int GemCounter          : 0x1320BC;
 	int GobboCounter        : 0x1320D0;
 	int AllowReturnToHub    : 0x1320EC;
+	int CurSaveSlotIdx      : 0x2292EC;
 	int DFCrystal5IP        : 0x22AF00;
 }
 
@@ -193,6 +195,7 @@ startup
 		// return to hub option enabled (usually set to 0 on door, but will stick if ww)
 		curState.AllowReturnToHub == 1 &&
 		// saveslot PrevTribe is already 0 (this is the main indicator)
+		// (in fact, this might be what actually causes the wrong warp!)
 		curState.PrevTribeSSX == 0);
 }
 
@@ -211,7 +214,6 @@ init
 			vars.AddrCurMap         = baseAddr + 0xA8C4C;
 			vars.AddrCurType        = baseAddr + 0xA8C50;
 			vars.AddrSaveSlots      = baseAddr + 0x2040C0;
-			vars.AddrCurSaveSlotIdx = baseAddr + 0x2220FC;
 			vars.AddrUsedBossWarps  = baseAddr + 0x222D50;
 			vars.DFCrystal5FinalIP  = 0x1741C8;
 			break;
@@ -223,7 +225,6 @@ init
 			vars.AddrCurMap         = baseAddr + 0xA9C4C;
 			vars.AddrCurType        = baseAddr + 0xA9C50;
 			vars.AddrSaveSlots      = baseAddr + 0x20B2B0;
-			vars.AddrCurSaveSlotIdx = baseAddr + 0x2292EC;
 			vars.AddrUsedBossWarps  = baseAddr + 0x229F40;
 			vars.DFCrystal5FinalIP  = 0x174210;
 			break;
@@ -370,12 +371,13 @@ update
 		vars.customCurrentVarsAreInitialized = true;
 	}
 	
-	// Update PrevTribeSSX
+	// Update addrSaveSlot
 	const int SaveSlotSize = 0x2000;
-	var addrSaveSlot = vars.AddrSaveSlots +
-		memory.ReadValue<int>((IntPtr)vars.AddrCurSaveSlotIdx) * SaveSlotSize;
+	vars.addrSaveSlot = vars.AddrSaveSlots + (current.CurSaveSlotIdx * SaveSlotSize);
+	
+	// Update PrevTribeSSX
 	const int offsetPrevTribeSSX = 0x2B4;
-	var addrPrevTribeSSX = addrSaveSlot + offsetPrevTribeSSX;
+	var addrPrevTribeSSX = vars.addrSaveSlot + offsetPrevTribeSSX;
 	current.PrevTribeSSX = memory.ReadValue<int>((IntPtr)addrPrevTribeSSX);
 	
 	// Update WadB4GH
@@ -699,12 +701,10 @@ split
 	}
 	
 	// Read progress list
-	const int SaveSlotSize = 0x2000;
-	var addrSaveSlot = vars.AddrSaveSlots +
-		memory.ReadValue<int>((IntPtr)vars.AddrCurSaveSlotIdx) * SaveSlotSize;
 	const int ProgressListSize = 0xf0;
-	current.ProgressList = memory.ReadBytes(
-		(IntPtr)addrSaveSlot + 0x2d0, ProgressListSize);
+	const int ProgressListOffset = 0x2d0;
+	var addrProgressList = vars.addrSaveSlot + ProgressListOffset;
+	current.ProgressList = memory.ReadBytes((IntPtr)addrProgressList, ProgressListSize);
 
 	// Cancel if old progress list is not available
 	if (!((IDictionary<string, object>)old).ContainsKey("ProgressList")) return false;
