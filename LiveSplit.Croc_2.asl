@@ -206,6 +206,10 @@ init
 		case 0x23A000:
 			version = "US";
 			addrScriptMgr = 0xB78BC;
+			vars.AddrCurTribe       = baseAddr + 0xA8C44;
+			vars.AddrCurLevel       = baseAddr + 0xA8C48;
+			vars.AddrCurMap         = baseAddr + 0xA8C4C;
+			vars.AddrCurType        = baseAddr + 0xA8C50;
 			vars.AddrSaveSlots      = baseAddr + 0x2040C0;
 			vars.AddrCurSaveSlotIdx = baseAddr + 0x2220FC;
 			vars.AddrUsedBossWarps  = baseAddr + 0x222D50;
@@ -214,6 +218,10 @@ init
 		case 0x242000:
 			version = "EU";
 			addrScriptMgr = 0xBEAAC;
+			vars.AddrCurTribe       = baseAddr + 0xA9C44;
+			vars.AddrCurLevel       = baseAddr + 0xA9C48;
+			vars.AddrCurMap         = baseAddr + 0xA9C4C;
+			vars.AddrCurType        = baseAddr + 0xA9C50;
 			vars.AddrSaveSlots      = baseAddr + 0x20B2B0;
 			vars.AddrCurSaveSlotIdx = baseAddr + 0x2292EC;
 			vars.AddrUsedBossWarps  = baseAddr + 0x229F40;
@@ -240,29 +248,6 @@ update
 	//
 	// description of the issue we are solving:
 	// https://discord.com/channels/313375426112389123/408694062862958592/880900162250211338
-	
-	// == Define map ID addresses ==
-	// It would be convenient if we could just retrieve the addresses from `state` somehow,
-	// but that doesn't seem possible? source:
-	// https://discord.com/channels/144133978759233536/144134231201808385/1301531238779195453
-	var baseAddr = modules.First().BaseAddress; // ie for US this is 0x400000
-	switch (version)
-	{
-		case "US":
-			vars.AddrCurTribe = baseAddr + 0xA8C44;
-			vars.AddrCurLevel = baseAddr + 0xA8C48;
-			vars.AddrCurMap   = baseAddr + 0xA8C4C;
-			vars.AddrCurType  = baseAddr + 0xA8C50;
-			break;
-		case "EU":
-			vars.AddrCurTribe = baseAddr + 0xA9C44;
-			vars.AddrCurLevel = baseAddr + 0xA9C48;
-			vars.AddrCurMap   = baseAddr + 0xA9C4C;
-			vars.AddrCurType  = baseAddr + 0xA9C50;
-			break;
-		default:
-			return;
-	}
 	
 	// == Manually read the map ID again (currentPlusAlpha) ==
 	// We will use it to verify LiveSplit's read (current)
