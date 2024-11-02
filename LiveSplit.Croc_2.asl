@@ -18,9 +18,6 @@ state("Croc2", "US")
 	int GobboCounter        : 0x12AEE0;
 	int AllowReturnToHub    : 0x12AEFC;
 	int DFCrystal5IP        : 0x223D10;
-	
-	// Temporary solution. This only works for Save Slot 0
-	int PrevTribeSS0        : 0x204374;
 }
 
 state("Croc2", "EU")
@@ -43,8 +40,6 @@ state("Croc2", "EU")
 	int GobboCounter        : 0x1320D0;
 	int AllowReturnToHub    : 0x1320EC;
 	int DFCrystal5IP        : 0x22AF00;
-
-	int PrevTribeSS0        : 0x20B564;
 }
 
 startup
@@ -123,8 +118,8 @@ startup
 		"Map changes", "DebugOutput");
 		settings.Add("DO_WadB4GH", true,
 		"WadB4GH changes", "DebugOutput");
-		settings.Add("DO_PrevTribeSS0", true,
-		"PrevTribeSS0 changes", "DebugOutput");
+		settings.Add("DO_PrevTribeSSX", true,
+		"PrevTribeSSX changes", "DebugOutput");
 		settings.Add("DO_MainState", true,
 		"MainState changes", "DebugOutput");
 		settings.Add("DO_InGameState", true,
@@ -198,7 +193,7 @@ startup
 		// return to hub option enabled (usually set to 0 on door, but will stick if ww)
 		curState.AllowReturnToHub == 1 &&
 		// saveslot PrevTribe is already 0 (this is the main indicator)
-		curState.PrevTribeSS0 == 0);
+		curState.PrevTribeSSX == 0);
 }
 
 init
@@ -233,8 +228,8 @@ init
 	// Initialize variable for speed display
 	vars.curMS = 0;
 	
-	// Set flag for WadB4GH initialization (see comments there for info)
-	vars.WadB4GHIsInitialized = false;
+	// Set flag for initialization of custom current. variables (see comments there for info)
+	vars.customCurrentVarsAreInitialized = false;
 }
 
 update
@@ -365,26 +360,38 @@ update
 	//
 	// ==== (end race condition detection + correction) ====
 	
-	// Initialize WadB4GH (Wad Before GOA or Hub)
-	// 
-	// WadB4GH is used for detecting re-entry for wrong warp, or if you GOA'd in the hub.
+	// Initialization of custom current. variables
 	//
-	// Unfortunately this can't simply be initialized in startup or init,
+	// Unfortunately this can't simply be initialized in `startup` or `init`,
 	// because when livesplit detects the EU version, the old/current variables get wiped.
-	if (!vars.WadB4GHIsInitialized)
+	if (!vars.customCurrentVarsAreInitialized)
 	{
+		// Initialize PrevTribeSSX
+		// Currently it's just used for detecting wrong warps
+		old.PrevTribeSSX = -1;
+		current.PrevTribeSSX = -1;
+		
+		// Initialize WadB4GH (Wad Before GOA or Hub)
+		// WadB4GH is used for detecting re-entry for wrong warp, or if you GOA'd in the hub.
 		old.TribeB4GH = -1;
 		old.LevelB4GH = -1;
-		old.MapB4GH = -1;
-		old.TypeB4GH = -1;
-		
+		old.MapB4GH   = -1;
+		old.TypeB4GH  = -1;
 		current.TribeB4GH = -1;
 		current.LevelB4GH = -1;
-		current.MapB4GH = -1;
-		current.TypeB4GH = -1;
+		current.MapB4GH   = -1;
+		current.TypeB4GH  = -1;
 		
-		vars.WadB4GHIsInitialized = true;
+		vars.customCurrentVarsAreInitialized = true;
 	}
+	
+	// Update PrevTribeSSX
+	const int SaveSlotSize = 0x2000;
+	var addrSaveSlot = vars.AddrSaveSlots +
+		memory.ReadValue<int>((IntPtr)vars.AddrCurSaveSlotIdx) * SaveSlotSize;
+	const int offsetPrevTribeSSX = 0x2B4;
+	var addrPrevTribeSSX = addrSaveSlot + offsetPrevTribeSSX;
+	current.PrevTribeSSX = memory.ReadValue<int>((IntPtr)addrPrevTribeSSX);
 	
 	// Update WadB4GH
 	if (vars.HasMapIDChanged(old, current) &&
@@ -480,12 +487,12 @@ update
 				           " -> " + current.TypeB4GH.ToString();
 		}
 		
-		// PrevTribeSS0 changes
-		if (settings["DO_PrevTribeSS0"] &&
-			old.PrevTribeSS0 != current.PrevTribeSS0)
+		// PrevTribeSSX changes
+		if (settings["DO_PrevTribeSSX"] &&
+			old.PrevTribeSSX != current.PrevTribeSSX)
 		{
-			debugText += "\n┃PrevTribeSS0: " + old.PrevTribeSS0.ToString() +
-				" -> " + current.PrevTribeSS0.ToString();
+			debugText += "\n┃PrevTribeSSX: " + old.PrevTribeSSX.ToString() +
+				" -> " + current.PrevTribeSSX.ToString();
 		}
 		
 		// MainState changes
