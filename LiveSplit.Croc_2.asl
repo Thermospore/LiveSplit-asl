@@ -52,56 +52,57 @@ startup
 	settings.Add("SaveSlotStart", true,
 		"Save slot start");
 		settings.SetToolTip("SaveSlotStart",
-		"Starts timer on creating a new save file");
+			"Starts timer on creating a new save file");
 	settings.Add("InputStart", false,
 		"Start on any input");
 		settings.SetToolTip("InputStart",
-		"Useful for testing / timing things");
+			"Useful for testing / timing things");
 	settings.Add("ILstart", false,
 		"IL start");
 		settings.SetToolTip("ILstart",
-		"Starts timer on map change when you enter a level");
+			"Starts timer on map change when you enter a level");
 	settings.Add("OTSstart", false,
 		"OTS start");
 		settings.SetToolTip("OTSstart",
-		"Starts timer on map change when you enter hub" +
-		"\n\n(note: used to record times for the Overworld Times Sheet)" +
-		"\n(note: secret is currently disabled, as its OTS isn't set up yet)");
+			"Starts timer on map change when you enter hub" +
+			"\n\n(note: used to record times for the Overworld Times Sheet)" +
+			"\n(note: secret is currently disabled, as its OTS isn't set up yet)");
 		settings.Add("OTSstart_SMP", false,
-		"Also start on SMP entry", "OTSstart");
+			"Also start on SMP entry", "OTSstart");
 	settings.Add("IWstart", false,
 		"IW start");
 		settings.SetToolTip("IWstart",
-		"Starts timer on map change when you exit SMP to hub" +
-		"\n\n(note: using the cheat menu to warp is equivalent)" +
-		"\n(fun fact: WW, SQ, GOA, (and sometimes DA) are not equivalent;" +
+			"Starts timer on map change when you exit SMP to hub" +
+			"\n\n(note: using the cheat menu to warp is equivalent)" +
+			"\n(fun fact: WW, SQ, GOA, (and sometimes DA) are not equivalent;" +
 			"\nthey give a different hub spawn!)");
 
 	// Split
 	settings.Add("SplitOnMapChange", true,
 		"IL/OTS end split");
 		settings.SetToolTip("SplitOnMapChange",
-		"Splits timer on any relevant map change" +
-		"\n\n(note: this can be used to chain multiple IL and OTS segments!)");
+			"Splits timer on any relevant map change to end an IL or OTS run" +
+			"\n\nThis can also be used in fullgame runs, to chain multiple IL and OTS segments together!" +
+			"\n(\"IL style splits\")");
 		settings.Add("SplitOnMapChange_literal", false,
-		"Split on literally any map change", "SplitOnMapChange");
-	settings.Add("SplitOnSMPEntry", false,
-		"IW end split");
-		settings.SetToolTip("SplitOnSMPEntry",
-		"Splits timer on map change into SMP" +
-		"\n\n(note: this option is redundant if IL/OTS end split is enabled)");
+			"Split on literally any map change", "SplitOnMapChange");
 	settings.Add("SplitOnObjectiveCompletion", false,
 		"Split on objective completion");
 		settings.SetToolTip("SplitOnObjectiveCompletion",
-		"(note: you probably want to disable this if doing IL splits)");
+			"(note: you probably want to disable this if doing IL style splits)");
+		settings.Add("SplitOnSMPEntry", false,
+			"IW end split", "SplitOnObjectiveCompletion");
+			settings.SetToolTip("SplitOnSMPEntry",
+				"Splits timer on map change into SMP" +
+				"\n\n(note: this option is redundant if IL/OTS end split is enabled!)");
 		settings.Add("SplitOnGoldenGobbo", false,
-		"100% (require Golden Gobbo)", "SplitOnObjectiveCompletion");
+			"100% (require Golden Gobbo)", "SplitOnObjectiveCompletion");
 		settings.Add("SplitOnDanteCrystals", false,
-		"Split on collecting crystals in Dante's World", "SplitOnObjectiveCompletion");
+			"Split on collecting crystals in Dante's World", "SplitOnObjectiveCompletion");
 	settings.Add("SplitOnGem", false,
 		"Split on collecting gems");
 		settings.SetToolTip("SplitOnGem",
-		"(note: useful for IL runs)");
+			"(note: useful for IL runs)");
 	settings.Add("BabiesSubsplits", false,
 		"Babies Subsplits");
 		for (int i = 1; i <= 30; i++)
@@ -761,6 +762,8 @@ split
 	}
 
 	// IW end
+	// note that this is a suboption of objective style splits
+	// (because it is redundant to use it with IL style splits)
 	if (settings["SplitOnSMPEntry"] &&
 		// was in hub
 		vars.IsGobboHub(old) &&
