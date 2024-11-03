@@ -801,8 +801,25 @@ split
 			return true;
 		}
 	}
-	// Other levels: check whether progress has changed
-	else
+	
+	// Split on final egg (for 100% / Max%)
+	if (vars.IsThisMap(current, 5, 4, 1, 0))
+	{
+		const int SecretCavemanIdx = (5 * 40) + (4 * 4) + 0;
+		int oldFlags = old.ProgressList[SecretCavemanIdx];
+		int newFlags = current.ProgressList[SecretCavemanIdx];
+		
+		const int CrystalFlags = 0x1f;
+		if ((oldFlags & ~CrystalFlags) != (newFlags & ~CrystalFlags))
+		{
+			return true;
+		}
+	}
+	
+	// Objective style splits
+	if (settings["SplitOnObjectiveCompletion"] &&
+		// (it may or may not be necessary to disable this for "Dante's Final Fight"?)
+		!vars.IsThisMap(current, 4, 2, 1, 1))
 	{
 		for (int tribe = 1; tribe <= 5; ++tribe)
 		for (int level = 1; level <= 7; ++level)
@@ -815,20 +832,11 @@ split
 			int oldFlags = old.ProgressList[i], newFlags = current.ProgressList[i];
 			if (oldFlags == newFlags) continue;
 			
-			// 100% ending split on final egg
-			const int CrystalFlags = 0x1f;
-			if (vars.IsThisMap(current, 5, 4, 1, 0) &&
-				(oldFlags & ~CrystalFlags) != (newFlags & ~CrystalFlags))
-			{
-				return true;
-			}
-			
-			// Stop if not using split on objective completion
-			if (!settings["SplitOnObjectiveCompletion"]) continue;
-
 			// Dante's World (Secret Village)
 			if (tribe == 5)
 			{
+				const int CrystalFlags = 0x1f;
+				
 				// Split on both gems and eggs
 				if (settings["SplitOnDanteCrystals"])
 				{
