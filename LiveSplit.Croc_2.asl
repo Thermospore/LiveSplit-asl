@@ -776,9 +776,9 @@ split
 		return true;
 	}
 
-	// Split on main babies areas
-	if (current.CurTribe == 4 &&
-		settings["BabiesSubsplits"] &&
+	// Babies subsplits
+	if (settings["BabiesSubsplits"] &&
+		vars.IsThisMap(current, 4, 2, 1, 0) &&
 		old.GobboCounter != current.GobboCounter &&
 		settings["BabiesSubsplits_" + current.GobboCounter.ToString()])
 	{
