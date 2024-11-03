@@ -793,8 +793,7 @@ split
 	}
 
 	// "Dante's Final Fight": Split when last crystal is placed
-	if (current.CurTribe == 4 && current.CurLevel == 2 &&
-		current.CurMap == 1 && current.CurType == 1)
+	if (vars.IsThisMap(current, 4, 2, 1, 1))
 	{
 		if (old.DFCrystal5IP != current.DFCrystal5IP && current.DFCrystal5IP ==
 			vars.ScriptCodeStart.Deref<int>(game) + vars.DFCrystal5FinalIP)
