@@ -40,6 +40,8 @@ state("Croc2", "EU") {
 	int CurSaveSlotIdx      : 0x2292EC;
 }
 
+// FIXME: also need to try HD GOG
+// 		  also classic (both steam and GOG)
 state("croc2", "HD-STEAM")
 {
 	// int CrocX               : 0xA8C3C, 0x14, 0x28, 0x2c;
@@ -59,6 +61,7 @@ state("croc2", "HD-STEAM")
 		// FIXME: seems to get triggered in a variety of transitions in roger.
 		//			also gets briefly triggered at the start of the cossack iceblock final cutscene.
 		//			how does OG compare? and do any other levels do that?
+		// FIXME: BIG PROBLEM - Stays false at the start of dante's final fight...
 	int NewMainState        : 0xB90D3C;
 	// int IsNewMainStateValid : 0xB7934;
 		// FIXME: find this for save slot start, if you can
@@ -914,7 +917,6 @@ split {
 		// was on GOA screen
 		vars.IsThisMap(old, 0, 0, 2, 3) &&
 		// disallow split after GOAing in gobbo hub or secret hub (invalid spawn)
-		// FIXME: this might not be working properly in HD; I just got a split after GOA in caveman hub
 		!(
 			(
 				vars.IsGobboHub(current) ||
@@ -1059,7 +1061,8 @@ split {
 	
 	// Objective style splits
 	if (settings["SplitOnObjectiveCompletion"] &&
-		// (it may or may not be necessary to disable this for "Dante's Final Fight"?)
+		// Disable for "Dante's Final Fight"
+		// (because we split on yellow crystal placement instead)
 		!vars.IsThisMap(current, 4, 2, 1, 1))
 	{
 		for (int tribe = 1; tribe <= 5; ++tribe)
