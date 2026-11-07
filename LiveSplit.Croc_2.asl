@@ -527,21 +527,23 @@ update {
 	// because when livesplit detects the EU version, the old/current variables get wiped.
 	if (!vars.customCurrentVarsAreInitialized)
 	{
+		vars.DummyInitialValue = -1;
+
 		// Initialize PrevTribeSSX
 		// Currently it's just used for detecting wrong warps
-		old.PrevTribeSSX = -1;
-		current.PrevTribeSSX = -1;
+		old.PrevTribeSSX = vars.DummyInitialValue;
+		current.PrevTribeSSX = vars.DummyInitialValue;
 		
 		// Initialize WadB4GH (Wad Before GOA or Hub)
 		// WadB4GH is used for detecting re-entry for wrong warp, or if you GOA'd in the hub.
-		old.TribeB4GH = -1;
-		old.LevelB4GH = -1;
-		old.MapB4GH   = -1;
-		old.TypeB4GH  = -1;
-		current.TribeB4GH = -1;
-		current.LevelB4GH = -1;
-		current.MapB4GH   = -1;
-		current.TypeB4GH  = -1;
+		old.TribeB4GH = vars.DummyInitialValue;
+		old.LevelB4GH = vars.DummyInitialValue;
+		old.MapB4GH   = vars.DummyInitialValue;
+		old.TypeB4GH  = vars.DummyInitialValue;
+		current.TribeB4GH = vars.DummyInitialValue;
+		current.LevelB4GH = vars.DummyInitialValue;
+		current.MapB4GH   = vars.DummyInitialValue;
+		current.TypeB4GH  = vars.DummyInitialValue;
 		
 		vars.customCurrentVarsAreInitialized = true;
 	}
@@ -626,18 +628,20 @@ update {
 		if (settings["DO_MapChanges"] &&
 			vars.HasMapIDChanged(old, current))
 		{
-			debugText += "\n┃Tribe: " + old.CurTribe.ToString() +
-				        " -> " + current.CurTribe.ToString() +
-				          " (" + currentPlusAlphaCurTribe.ToString() +
-				")\n┃Level: " + old.CurLevel.ToString() +
-				        " -> " + current.CurLevel.ToString() +
-				          " (" + currentPlusAlphaCurLevel.ToString() +
-				")\n┃Map:   " + old.CurMap.ToString() +
-				        " -> " + current.CurMap.ToString() +
-				          " (" + currentPlusAlphaCurMap.ToString() +
-				")\n┃Type:  " + old.CurType.ToString() +
-				        " -> " + current.CurType.ToString() +
-				          " (" + currentPlusAlphaCurType.ToString() + ")";
+			debugText += "\n┃CurWad:  " +
+				old.CurTribe.ToString() + "." +
+				old.CurLevel.ToString() + "." +
+				old.CurMap.ToString() + "." +
+				old.CurType.ToString() + " →" +
+				"\n┃         " +
+				current.CurTribe.ToString() + "." +
+				current.CurLevel.ToString() + "." +
+				current.CurMap.ToString() + "." +
+				current.CurType.ToString() + " (" +
+				currentPlusAlphaCurTribe.ToString() + "." +
+				currentPlusAlphaCurLevel.ToString() + "." +
+				currentPlusAlphaCurMap.ToString() + "." +
+				currentPlusAlphaCurType.ToString() + ")";
 		}
 
 		// // NewWad changes
@@ -649,30 +653,46 @@ update {
 		// 	old.NewType != current.NewType))
 		// {
 		// 	debugText += "\n┃NewTribe: " + old.NewTribe.ToString() +
-		// 		           " -> " + current.NewTribe.ToString() +
+		// 		           " → " + current.NewTribe.ToString() +
 		// 		"\n┃NewLevel: " + old.NewLevel.ToString() +
-		// 		           " -> " + current.NewLevel.ToString() +
+		// 		           " → " + current.NewLevel.ToString() +
 		// 		"\n┃NewMap:   " + old.NewMap.ToString() +
-		// 		           " -> " + current.NewMap.ToString() +
+		// 		           " → " + current.NewMap.ToString() +
 		// 		"\n┃NewType:  " + old.NewType.ToString() +
-		// 		           " -> " + current.NewType.ToString();
+		// 		           " → " + current.NewType.ToString();
 		// }
 		
 		// WadB4GH changes
-		if (settings["DO_WadB4GH"] &&
-			(old.TribeB4GH != current.TribeB4GH ||
+		if (settings["DO_WadB4GH"] && (
+			old.TribeB4GH != current.TribeB4GH ||
 			old.LevelB4GH != current.LevelB4GH ||
-			old.MapB4GH != current.MapB4GH ||
-			old.TypeB4GH != current.TypeB4GH))
+			old.MapB4GH   != current.MapB4GH   ||
+			old.TypeB4GH  != current.TypeB4GH))
 		{
-			debugText += "\n┃TribeB4GH: " + old.TribeB4GH.ToString() +
-				           " -> " + current.TribeB4GH.ToString() +
-				"\n┃LevelB4GH: " + old.LevelB4GH.ToString() +
-				           " -> " + current.LevelB4GH.ToString() +
-				"\n┃MapB4GH:   " + old.MapB4GH.ToString() +
-				           " -> " + current.MapB4GH.ToString() +
-				"\n┃TypeB4GH:  " + old.TypeB4GH.ToString() +
-				           " -> " + current.TypeB4GH.ToString();
+			debugText += "\n┃WadB4GH: ";
+			
+			if (old.TribeB4GH == vars.DummyInitialValue || 
+				old.LevelB4GH == vars.DummyInitialValue ||
+				old.MapB4GH   == vars.DummyInitialValue ||
+				old.TypeB4GH  == vars.DummyInitialValue)
+			{
+				debugText += "[unknown]";
+			}
+			else
+			{
+				debugText +=
+					old.TribeB4GH.ToString() + "." +
+					old.LevelB4GH.ToString() + "." +
+					old.MapB4GH.ToString() + "." +
+					old.TypeB4GH.ToString();
+
+			}
+			
+			debugText += " →\n┃         " + 
+				current.TribeB4GH.ToString() + "." +
+				current.LevelB4GH.ToString() + "." +
+				current.MapB4GH.ToString() + "." +
+				current.TypeB4GH.ToString();
 		}
 		
 		// PrevTribeSSX changes
@@ -681,7 +701,7 @@ update {
 			old.PrevTribeSSX != current.PrevTribeSSX)
 		{
 			debugText += "\n┃PrevTribeSSX: " + old.PrevTribeSSX.ToString() +
-				" -> " + current.PrevTribeSSX.ToString();
+				" → " + current.PrevTribeSSX.ToString();
 		}
 		
 		// MainState changes
@@ -689,7 +709,7 @@ update {
 			old.MainState != current.MainState)
 		{
 			debugText += "\n┃MainState: " + old.MainState.ToString() +
-				" -> " + current.MainState.ToString();
+				" → " + current.MainState.ToString();
 		}
 		
 		// NewMainState changes
@@ -697,7 +717,7 @@ update {
 			old.NewMainState != current.NewMainState)
 		{
 			debugText += "\n┃NewMainState: " + old.NewMainState.ToString() +
-				" -> " + current.NewMainState.ToString();
+				" → " + current.NewMainState.ToString();
 		}
 		
 		// IsNewMainStateValid changes
@@ -706,7 +726,7 @@ update {
 			old.IsNewMainStateValid != current.IsNewMainStateValid)
 		{
 			debugText += "\n┃IsNewMainStateValid: " + old.IsNewMainStateValid.ToString() +
-				" -> " + current.IsNewMainStateValid.ToString();
+				" → " + current.IsNewMainStateValid.ToString();
 		}
 		
 		// InGameState changes
@@ -714,7 +734,7 @@ update {
 			old.InGameState != current.InGameState)
 		{
 			debugText += "\n┃InGameState: " + old.InGameState.ToString() +
-				" -> " + current.InGameState.ToString();
+				" → " + current.InGameState.ToString();
 		}
 		
 		// IsCheatMenuOpen changes
@@ -722,7 +742,7 @@ update {
 			old.IsCheatMenuOpen != current.IsCheatMenuOpen)
 		{
 			debugText += "\n┃IsCheatMenuOpen: " + old.IsCheatMenuOpen.ToString() +
-				" -> " + current.IsCheatMenuOpen.ToString();
+				" → " + current.IsCheatMenuOpen.ToString();
 		}
 		
 		// AllowReturnToHub changes
@@ -731,7 +751,7 @@ update {
 			old.AllowReturnToHub != current.AllowReturnToHub)
 		{
 			debugText += "\n┃AllowReturnToHub: " + old.AllowReturnToHub.ToString() +
-				" -> " + current.AllowReturnToHub.ToString();
+				" → " + current.AllowReturnToHub.ToString();
 		}
 		
 		// IsMapLoaded changes
@@ -739,7 +759,7 @@ update {
 			old.IsMapLoaded != current.IsMapLoaded)
 		{
 			debugText += "\n┃IsMapLoaded: " + old.IsMapLoaded.ToString() +
-				" -> " + current.IsMapLoaded.ToString();
+				" → " + current.IsMapLoaded.ToString();
 		}
 		
 		// Print output
@@ -748,7 +768,7 @@ update {
 			print("┏━ " + version.ToString() +
 				"\n┃IGT: " + timer.CurrentTime.GameTime.ToString() +
 				"\n┃RTA: " + timer.CurrentTime.RealTime.ToString() +
-				debugText +
+					debugText +
 				"\n┗━");
 		}
 	}
