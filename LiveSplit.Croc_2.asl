@@ -745,9 +745,11 @@ update {
 		// Print output
 		if (debugText != "")
 		{
-			print("┏━━━━━━ " + vars.era.ToString() + " ━━━━━━━┓" +
+			print("┏━ " + version.ToString() +
+				"\n┃IGT: " + timer.CurrentTime.GameTime.ToString() +
+				"\n┃RTA: " + timer.CurrentTime.RealTime.ToString() +
 				debugText +
-				"\n┗━━━━━━━━━━━━━━━┛");
+				"\n┗━");
 		}
 	}
 	
