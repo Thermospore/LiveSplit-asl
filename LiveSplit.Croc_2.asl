@@ -1148,6 +1148,7 @@ isLoading {
 	// FIXME: we might have been missing GOA loads cos mainstate != running? oops...
 	// FIXME: is there any reason to enforce mainstate == running anyways?
 	// 	if there is a load when doing SQ / GOA etc a load is still a load...?
+	// FIXME: should we count death as a load too? (InGameState == 5)
 	return current.MainState == vars.MainState_Running && (
 		current.InGameState == 6 || current.InGameState == 7 ||
 		!current.IsMapLoaded);
