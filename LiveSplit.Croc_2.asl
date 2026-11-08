@@ -78,7 +78,6 @@ state("croc2", "HD-STEAM")
 		// NOTE: GOA screen is an exception; see load removal logic
 		// FIXME: are these present in og?
 		// FIXME: think about if these could be useful for race condition prevention (or for other parts of the autosplitter)
-	long CurrentMap         : 0xB90D70;
 }
 
 startup {
@@ -787,14 +786,6 @@ update {
 				" → " + current.IsMapLoaded.ToString();
 		}
 		
-		// CurrentMap changes
-		// FIXME: if you keep this, add a setting
-		if (vars.era == "HD" && old.CurrentMap != current.CurrentMap)
-		{
-			debugText += "\n┃CurrentMap: " + old.CurrentMap.ToString("X") +
-				" → " + current.CurrentMap.ToString("X");
-		}
-		
 		// Print output
 		if (debugText != "")
 		{
@@ -1188,7 +1179,6 @@ isLoading {
 			// This replaces IsMapLoaded from OG.
 			// current.InGameState != 1 is to exclude GO screen, which behaves differently.
 			(vars.IsMapIDChanging(current) && current.InGameState != 1) ||
-			// (current.CurrentMap == 0 && current.InGameState != 1) ||
 
 			// InGameState transitions
 			current.InGameState == 5 || // Death warp
