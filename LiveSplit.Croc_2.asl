@@ -78,6 +78,8 @@ state("croc2", "HD-STEAM")
 		// NOTE: GOA screen is an exception; see load removal logic
 		// FIXME: are these present in og?
 		// FIXME: think about if these could be useful for race condition prevention (or for other parts of the autosplitter)
+	long CurrentMap         : 0xB90D70;
+		// FIXME: candidate for use with load removal
 }
 
 startup {
@@ -312,6 +314,7 @@ init {
 	int addrScriptMgr;
 
 	// Detect game version
+	// FIXME: SURELY there is a way to remove the redundant vars.AddrCurWad definitions? (the same addresses are defined up top as state variables)
 	switch (firstModule.ModuleMemorySize)
 	{
 		case 0x23A000:
@@ -359,6 +362,9 @@ init {
 	}
 
 	// Set era dependent constants
+	// FIXME: rename MainState/InGameState to their official names
+	// - https://discord.com/channels/313375426112389123/408694062862958592/1568992386514948107
+	// - https://temp-quartz-test.pages.dev/MainState#proper-variable-name
 	// FIXME: compare MainState behaviour with og
 	// - timing of MainState changes, relative to wad ID etc (particularly Running)
 	// - value of MainState in cutscene vs main gameplay vs title screen demos
@@ -796,6 +802,14 @@ update {
 				" → " + current.IsMapLoaded.ToString();
 		}
 		
+		// CurrentMap changes
+		// FIXME: if you keep this, add a setting
+		if (vars.era == "HD" && old.CurrentMap != current.CurrentMap)
+		{
+			debugText += "\n┃CurrentMap: " + old.CurrentMap.ToString("X") +
+				" → " + current.CurrentMap.ToString("X");
+		}
+		
 		// Print output
 		if (debugText != "")
 		{
@@ -1176,10 +1190,12 @@ split {
 }
 
 isLoading {
+	// FIXME: need some community consensus on load removal philosophy
+	// - https://discord.com/channels/313375426112389123/408694062862958592/1568997014375632969
 	switch ((string)vars.era)
 	{
 		case "OG": return
-			// FIXME: merge HD changes?
+			// FIXME: merge HD changes, or leave OG as-is?
 			current.MainState == vars.MainState_Running && (
 			current.InGameState == 6 || current.InGameState == 7 ||
 			!current.IsMapLoaded);
@@ -1189,6 +1205,7 @@ isLoading {
 			// This replaces IsMapLoaded from OG.
 			// current.InGameState != 1 is to exclude GO screen, which behaves differently.
 			(vars.IsMapIDChanging(current) && current.InGameState != 1) ||
+			// (current.CurrentMap == 0 && current.InGameState != 1) ||
 
 			// InGameState transitions
 			current.InGameState == 5 || // Death warp
