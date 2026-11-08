@@ -174,8 +174,19 @@ startup {
 		"IsMapLoaded changes", "DebugOutput");
 		
 	// Speed display
-	// should probably move this to a Cheat Engine GUI or a separate asl script or something
+	// Maybe move this to a Cheat Engine GUI or a separate asl script or something?
 	//      https://wiki.cheatengine.org/index.php?title=Tutorial:LuaFormGUI
+	settings.Add("SpeedDisplay", false,
+		"Display Croc's speed in a LiveSplit text component");
+		settings.SetToolTip("SpeedDisplay",
+		"note 1: The text component is created automatically once Croc starts walking around" +
+		"\n\nnote 2: Croc 2 runs at 30fps. This display catches most but NOT ALL of the frames" +
+		"\n\nnote 3: Unfortunately, when Croc isn't moving the display just holds the last non-zero value");
+
+	// Objective flags display
+	settings.Add("ObjectiveFlagsDisplay", false,
+		"Display objective flags in a LiveSplit text component");
+
 	// SetTextComponent is taken from: https://github.com/zment4/DefyGravityASL
 	vars.SetTextComponent = (Action<string, string, bool>)((id, text, create) => {
 		dynamic textSetting = timer.Layout.Components
@@ -196,12 +207,6 @@ startup {
 		if (textSetting != null)
 			textSetting.Text2 = text;
 	});
-	settings.Add("SpeedDisplay", false,
-		"Display Croc's speed in a LiveSplit text component");
-		settings.SetToolTip("SpeedDisplay",
-		"note 1: The text component is created automatically once Croc starts walking around" +
-		"\n\nnote 2: Croc 2 runs at 30fps. This display catches most but NOT ALL of the frames" +
-		"\n\nnote 3: Unfortunately, when Croc isn't moving the display just holds the last non-zero value");
 
 	// Returns true iff the current map ID changed
 	vars.HasMapIDChanged = new Func<dynamic, dynamic, bool>((state1, state2) =>
@@ -621,6 +626,21 @@ update {
 			vars.SetTextComponent("UPF (3D)", vars.upf3D.ToString("0.0000"), true);
 		}
 	}	
+
+	// Objective completion display
+	if (settings["ObjectiveFlagsDisplay"])
+	{
+		if (((IDictionary<string, object>)old).ContainsKey("ProgressList"))
+		{
+			int i = current.CurTribe * 40 + current.CurLevel * 4 + current.CurType;
+			int ObjectiveFlags = current.ProgressList[i];
+			vars.SetTextComponent("Objective Flags", Convert.ToString(ObjectiveFlags, 2), true);
+		}
+		else
+		{
+			vars.SetTextComponent("Objective Flags", "-", true);
+		}
+	}
 	
 	// Debug output
 	if (settings["DebugOutput"])
@@ -1171,7 +1191,7 @@ isLoading {
 			(current.InGameState == 1 && !vars.IsThisMap(current, 0, 0, 2, 3)) ||
 
 			// Transitioning out of the GO wad when selecting "No"
-			(current.NewMainState == vars.MainState_MainMenu &&	vars.IsThisMap(current, 0, 0, 2, 3));
+			(current.NewMainState == vars.MainState_MainMenu && vars.IsThisMap(current, 0, 0, 2, 3));
 
 			// For Game Over timing, reference:
 			// https://docs.google.com/spreadsheets/d/1qO8OKwC2lO5xLHyy5YCDRCFqPmfvvvpsyPnEzInGkjg/edit?usp=sharing
