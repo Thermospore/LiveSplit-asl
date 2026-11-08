@@ -47,6 +47,7 @@ state("croc2", "HD-STEAM")
 	// int CrocX               : 0xA8C3C, 0x14, 0x28, 0x2c;
 	// int CrocY               : 0xA8C3C, 0x14, 0x28, 0x30;
 	// int CrocZ               : 0xA8C3C, 0x14, 0x28, 0x34;
+		// FIXME: find these for HD
 	int CurTribe            : 0xBC87D4;
 	int CurLevel            : 0xBC87D8;
 	int CurMap              : 0xBC87DC;
@@ -56,12 +57,7 @@ state("croc2", "HD-STEAM")
 		// OG (int):  menu closed = 0, open = 1
 		// HD (int):  menu closed = 0, open = 0xFFFFFFFF (or, -1)
 		// Switching this to a bool, so behaviour is the same between OG and HD
-	bool IsMapLoaded        : 0xBCE790;
-		// FIXME: candidate. need to verify. 0xBCE894 also looks promising
-		// FIXME: seems to get triggered in a variety of transitions in roger.
-		//			also gets briefly triggered at the start of the cossack iceblock final cutscene.
-		//			how does OG compare? and do any other levels do that?
-		// FIXME: BIG PROBLEM - Stays false at the start of dante's final fight...
+	// IsMapLoaded - couldn't find an HD equivalent; replaced with IsMapIDChanging
 	int NewMainState        : 0xB90D3C;
 	// int IsNewMainStateValid : 0xB7934;
 		// FIXME: find this for save slot start, if you can
@@ -75,6 +71,13 @@ state("croc2", "HD-STEAM")
 		// only used for wrong warp detection (which I don't think is even possible in HD?)
 	int CurSaveSlotIdx      : 0xB4D5A8;
 		// FIXME: do we use this for anything in HD? if not, then let's just comment it out
+	int NewTribe            : 0xBA9B04;
+	int NewLevel            : 0xBA9B08;
+	int NewMap              : 0xBA9B0C;
+	int NewType             : 0xBA9B10;
+		// NOTE: GOA screen is an exception; see load removal logic
+		// FIXME: are these present in og?
+		// FIXME: think about if these could be useful for race condition prevention (or for other parts of the autosplitter)
 }
 
 startup {
@@ -204,6 +207,11 @@ startup {
 	vars.HasMapIDChanged = new Func<dynamic, dynamic, bool>((state1, state2) =>
 		state1.CurTribe != state2.CurTribe || state1.CurLevel != state2.CurLevel ||
 		state1.CurMap != state2.CurMap || state1.CurType != state2.CurType);
+
+	// Returns true iff NewWad != CurWad
+	vars.IsMapIDChanging = new Func<dynamic, bool>((state1) =>
+		state1.NewTribe != state1.CurTribe || state1.NewLevel != state1.CurLevel ||
+		state1.NewMap != state1.CurMap || state1.NewType != state1.CurType);
 
 	vars.AllDFCrystalsJustPlaced = new Func<Process, dynamic, bool>((Memory, Vars) =>
 	{
@@ -338,11 +346,6 @@ init {
 				// where X is replaced with the save slot #
 			// vars.AddrUsedBossWarps  = baseAddr + 0x222D50;
 				// FIXME: surely this bug is fixed in HD?
-			// FIXME: in addition to the traditional CurWAD addresses, we found these NewWAD addresses, which contain the WAD being loaded. as of writing, they are used for HD save slot start logic. think about if these could be useful for race condition prevention (or for other parts of the autosplitter). also, are they present in og?
-			vars.AddrNewTribe       = baseAddr + 0xBA9B04;
-			vars.AddrNewLevel       = baseAddr + 0xBA9B08;
-			vars.AddrNewMap         = baseAddr + 0xBA9B0C;
-			vars.AddrNewType        = baseAddr + 0xBA9B10;
 			vars.PtrToFirstStrat = new DeepPointer(baseAddr + 0xBC7D20, 0);
 			break;
 
@@ -624,7 +627,7 @@ update {
 	{
 		string debugText = "";
 		
-		// Map changes
+		// CurWad changes
 		if (settings["DO_MapChanges"] &&
 			vars.HasMapIDChanged(old, current))
 		{
@@ -644,24 +647,25 @@ update {
 				currentPlusAlphaCurType.ToString() + ")";
 		}
 
-		// // NewWad changes
-		// // FIXME: temporary
-		// if (settings["DO_MapChanges"] && vars.era == "HD" && 
-		// 	(old.NewTribe != current.NewTribe ||
-		// 	old.NewLevel != current.NewLevel ||
-		// 	old.NewMap != current.NewMap ||
-		// 	old.NewType != current.NewType))
-		// {
-		// 	debugText += "\n┃NewTribe: " + old.NewTribe.ToString() +
-		// 		           " → " + current.NewTribe.ToString() +
-		// 		"\n┃NewLevel: " + old.NewLevel.ToString() +
-		// 		           " → " + current.NewLevel.ToString() +
-		// 		"\n┃NewMap:   " + old.NewMap.ToString() +
-		// 		           " → " + current.NewMap.ToString() +
-		// 		"\n┃NewType:  " + old.NewType.ToString() +
-		// 		           " → " + current.NewType.ToString();
-		// }
-		
+		// NewWad changes
+		if (settings["DO_MapChanges"] && vars.era == "HD" && (
+			old.NewTribe != current.NewTribe ||
+			old.NewLevel != current.NewLevel ||
+			old.NewMap   != current.NewMap   ||
+			old.NewType  != current.NewType))
+		{
+			debugText += "\n┃NewWad:  " +
+				old.NewTribe.ToString() + "." +
+				old.NewLevel.ToString() + "." +
+				old.NewMap.ToString() + "." +
+				old.NewType.ToString() + " →" +
+				"\n┃         " +
+				current.NewTribe.ToString() + "." +
+				current.NewLevel.ToString() + "." +
+				current.NewMap.ToString() + "." +
+				current.NewType.ToString();
+		}
+
 		// WadB4GH changes
 		if (settings["DO_WadB4GH"] && (
 			old.TribeB4GH != current.TribeB4GH ||
@@ -755,7 +759,7 @@ update {
 		}
 		
 		// IsMapLoaded changes
-		if (settings["DO_IsMapLoaded"] &&
+		if (settings["DO_IsMapLoaded"] && vars.era == "OG" &&
 			old.IsMapLoaded != current.IsMapLoaded)
 		{
 			debugText += "\n┃IsMapLoaded: " + old.IsMapLoaded.ToString() +
@@ -807,15 +811,14 @@ start {
 			case "HD":
 				// MainState_NGSaveSlot doesn't exist in HD
 				// (because the new game / load game screens were merged with the main menu)
-				// So instead, we can check the new game cutscene is being loaded
-				int NewTribe = memory.ReadValue<int>((IntPtr)vars.AddrNewTribe);
-				int NewLevel = memory.ReadValue<int>((IntPtr)vars.AddrNewLevel);
-				int NewMap   = memory.ReadValue<int>((IntPtr)vars.AddrNewMap);
-				int NewType  = memory.ReadValue<int>((IntPtr)vars.AddrNewType);
+				// So instead, we can check if the new game cutscene is being loaded
 				if (current.MainState == vars.MainState_MainMenu &&
 					// current.IsNewMainStateValid != 0 &&
 					current.NewMainState == vars.MainState_Running &&
-					NewTribe == 1 && NewLevel == 1 && NewMap == 2 && NewType == 3)
+					current.NewTribe == 1 &&
+					current.NewLevel == 1 &&
+					current.NewMap   == 2 &&
+					current.NewType  == 3)
 				{
 					return true;
 				}
@@ -1143,13 +1146,37 @@ split {
 }
 
 isLoading {
-	// FIXME: check/compare HD vs OG
-	// 	Particularly IsMapLoaded timing, and particularly GOA
-	// FIXME: we might have been missing GOA loads cos mainstate != running? oops...
-	// FIXME: is there any reason to enforce mainstate == running anyways?
-	// 	if there is a load when doing SQ / GOA etc a load is still a load...?
-	// FIXME: should we count death as a load too? (InGameState == 5)
-	return current.MainState == vars.MainState_Running && (
-		current.InGameState == 6 || current.InGameState == 7 ||
-		!current.IsMapLoaded);
+	switch ((string)vars.era)
+	{
+		case "OG": return
+			// FIXME: merge HD changes?
+			current.MainState == vars.MainState_Running && (
+			current.InGameState == 6 || current.InGameState == 7 ||
+			!current.IsMapLoaded);
+
+		case "HD": return
+			// Main transition between wads.
+			// This replaces IsMapLoaded from OG.
+			// current.InGameState != 1 is to exclude GO screen, which behaves differently.
+			(vars.IsMapIDChanging(current) && current.InGameState != 1) ||
+
+			// InGameState transitions
+			current.InGameState == 5 || // Death warp
+				// ↑ Could be controversial; please give your thoughts!
+			current.InGameState == 6 || // Going through door within wad
+			current.InGameState == 7 || // Transitioning between wads
+			current.InGameState == 8 || // Exiting to main menu
+
+			// Transitioning into the GO wad
+			(current.InGameState == 1 && !vars.IsThisMap(current, 0, 0, 2, 3)) ||
+
+			// Transitioning out of the GO wad when selecting "No"
+			(current.NewMainState == vars.MainState_MainMenu &&	vars.IsThisMap(current, 0, 0, 2, 3));
+
+			// For Game Over timing, reference:
+			// https://docs.google.com/spreadsheets/d/1qO8OKwC2lO5xLHyy5YCDRCFqPmfvvvpsyPnEzInGkjg/edit?usp=sharing
+
+		default: return
+			false;
+	}
 }
