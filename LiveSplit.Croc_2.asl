@@ -630,15 +630,25 @@ update {
 	// Objective completion display
 	if (settings["ObjectiveFlagsDisplay"])
 	{
+		// Initialize with arbitrary value
+		if (!((IDictionary<string, object>)old).ContainsKey("ObjectiveFlagsText"))
+			old.ObjectiveFlagsText = "X";
+
+		// Update objective flags text, if progress list exists
 		if (((IDictionary<string, object>)old).ContainsKey("ProgressList"))
 		{
 			int i = current.CurTribe * 40 + current.CurLevel * 4 + current.CurType;
 			int ObjectiveFlags = current.ProgressList[i];
-			vars.SetTextComponent("Objective Flags", Convert.ToString(ObjectiveFlags, 2), true);
+			current.ObjectiveFlagsText = Convert.ToString(ObjectiveFlags, 2);
 		}
 		else
+			current.ObjectiveFlagsText = "-";
+
+		// Only update livesplit element if the text has changed
+		if (current.ObjectiveFlagsText != old.ObjectiveFlagsText)
 		{
-			vars.SetTextComponent("Objective Flags", "-", true);
+			print("FIXME: TEMP DEBUG. NEW TEXT: " + current.ObjectiveFlagsText);
+			vars.SetTextComponent("Objective Flags", current.ObjectiveFlagsText, true);
 		}
 	}
 	
