@@ -1190,22 +1190,28 @@ split {
 }
 
 isLoading {
-	// FIXME: need some community consensus on load removal philosophy
-	// - https://discord.com/channels/313375426112389123/408694062862958592/1568997014375632969
 	switch ((string)vars.era)
 	{
 		case "OG": return
-			// FIXME: merge HD changes, or leave OG as-is?
+			// NOTE: for the time being, we are pickling OG load removal code as-is. See:
+			// https://discord.com/channels/313375426112389123/408694062862958592/1569129837946339411
 			current.MainState == vars.MainState_Running && (
 			current.InGameState == 6 || current.InGameState == 7 ||
 			!current.IsMapLoaded);
 
 		case "HD": return
+			// Main transition between wads
+			current.CurrentMap == 0;
+
+			// FIXME: are there any other actual variable loads this misses? perhaps on `GO_DOOR` or `GO_RESETLEVEL` transition?
+		
+		// FIXME: aggressive HD load removal code that we will probably not use. See:
+		// https://discord.com/channels/313375426112389123/408694062862958592/1569341751892771101
+		case "XX": return
 			// Main transition between wads.
 			// This replaces IsMapLoaded from OG.
 			// current.InGameState != 1 is to exclude GO screen, which behaves differently.
 			(vars.IsMapIDChanging(current) && current.InGameState != 1) ||
-			// (current.CurrentMap == 0 && current.InGameState != 1) ||
 
 			// InGameState transitions
 			current.InGameState == 5 || // Death warp
