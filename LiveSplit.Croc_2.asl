@@ -6,6 +6,7 @@ state("Croc2", "US") {
 	int CurLevel            : 0xA8C48;
 	int CurMap              : 0xA8C4C;
 	int CurType             : 0xA8C50;
+	// int FadeFinished        : 0xB7770;
 	int InGameState         : 0xB7880;
 	bool IsCheatMenuOpen    : 0xB788C;
 	bool IsMapLoaded        : 0xB78C4;
@@ -27,6 +28,7 @@ state("Croc2", "EU") {
 	int CurLevel            : 0xA9C48;
 	int CurMap              : 0xA9C4C;
 	int CurType             : 0xA9C50;
+	// int FadeFinished        : 0xBE960;
 	int InGameState         : 0xBEA70;
 	bool IsCheatMenuOpen    : 0xBEA7C;
 	bool IsMapLoaded        : 0xBEAB4;
@@ -52,6 +54,7 @@ state("croc2", "HD-STEAM")
 	int CurLevel            : 0xBC87D8;
 	int CurMap              : 0xBC87DC;
 	int CurType             : 0xBC87E0;
+	int FadeFinished        : 0xB902D0;
 	int InGameState         : 0xB90D30;
 	bool IsCheatMenuOpen    : 0xB8E0F8;
 		// OG (int):  menu closed = 0, open = 1
@@ -768,6 +771,17 @@ update {
 			debugText += "\n┃IsNewMainStateValid: " + old.IsNewMainStateValid.ToString() +
 				" → " + current.IsNewMainStateValid.ToString();
 		}
+
+		// FadeFinished changes
+		// FIXME: add a setting if you end up using this
+		if (/*settings[""] &&*/
+			old.FadeFinished != current.FadeFinished)
+		{
+			debugText += "\n┃FadeFinished: " + old.FadeFinished.ToString() +
+				" → " + current.FadeFinished.ToString();
+		}
+		if (current.FadeFinished == 1 && current.InGameState != 0)
+			print("★★★ IS THIS LIVESPLIT CYCLE A LOAD?? ★★★");
 		
 		// InGameState changes
 		if (settings["DO_InGameState"] &&
@@ -814,8 +828,9 @@ update {
 		if (debugText != "")
 		{
 			print("┏━ " + version.ToString() +
-				"\n┃IGT: " + timer.CurrentTime.GameTime.ToString() +
-				"\n┃RTA: " + timer.CurrentTime.RealTime.ToString() +
+				"\n┃RTA: " + timer.CurrentTime.RealTime.ToString() + " | Total load time" +
+				"\n┃IGT: " + timer.CurrentTime.GameTime.ToString() + " | " +
+				(timer.CurrentTime.RealTime - timer.CurrentTime.GameTime).ToString() +
 					debugText +
 				"\n┗━");
 		}
@@ -1201,9 +1216,13 @@ isLoading {
 
 		case "HD": return
 			// Main transition between wads
-			current.CurrentMap == 0;
-
 			// FIXME: are there any other actual variable loads this misses? perhaps on `GO_DOOR` or `GO_RESETLEVEL` transition?
+			current.CurrentMap == 0 || 
+
+			// FIXME: is this even a load???
+			// FIXME: this breaks on GO. probably on credits too. need to add restrictions
+			(current.FadeFinished == 1 && current.InGameState != 0);
+
 		
 		// FIXME: aggressive HD load removal code that we will probably not use. See:
 		// https://discord.com/channels/313375426112389123/408694062862958592/1569341751892771101
