@@ -159,8 +159,8 @@ startup {
 		"\n\n(note: allows you to see which changes happened in the same ASL cycle)");
 		settings.Add("DO_MapChanges", true,
 		"Map changes", "DebugOutput");
-		settings.Add("DO_WadB4GH", true,
-		"WadB4GH changes", "DebugOutput");
+		settings.Add("DO_WADB4GH", true,
+		"WADB4GH changes", "DebugOutput");
 		settings.Add("DO_PrevTribeSSX", true,
 		"PrevTribeSSX changes", "DebugOutput");
 		settings.Add("DO_MainState", true,
@@ -214,14 +214,14 @@ startup {
 	});
 
 	// Returns true iff the current map ID changed
-	vars.HasMapIDChanged = new Func<dynamic, dynamic, bool>((state1, state2) =>
+	vars.HasCurWADChanged = new Func<dynamic, dynamic, bool>((state1, state2) =>
 		state1.CurTribe != state2.CurTribe || state1.CurLevel != state2.CurLevel ||
 		state1.CurMap != state2.CurMap || state1.CurType != state2.CurType);
 
-	// Returns true iff NewWad != CurWad
-	vars.IsMapIDChanging = new Func<dynamic, bool>((state1) =>
-		state1.NewTribe != state1.CurTribe || state1.NewLevel != state1.CurLevel ||
-		state1.NewMap != state1.CurMap || state1.NewType != state1.CurType);
+	// Returns true iff NewWAD != CurWAD
+	vars.IsMapIDChanging = new Func<dynamic, bool>((state) =>
+		state.NewTribe != state.CurTribe || state.NewLevel != state.CurLevel ||
+		state.NewMap != state.CurMap || state.NewType != state.CurType);
 
 	vars.AllDFCrystalsJustPlaced = new Func<Process, dynamic, bool>((Memory, Vars) =>
 	{
@@ -317,7 +317,7 @@ init {
 	int addrScriptMgr;
 
 	// Detect game version
-	// FIXME: SURELY there is a way to remove the redundant vars.AddrCurWad definitions? (the same addresses are defined up top as state variables)
+	// FIXME: SURELY there is a way to remove the redundant vars.AddrCurWAD definitions? (the same addresses are defined up top as state variables)
 	switch (firstModule.ModuleMemorySize)
 	{
 		case 0x23A000:
@@ -489,7 +489,7 @@ update {
 	// and we will clean any race conditions out of c
 	//          o   c a
 	// old map  |  new map
-	if (vars.HasMapIDChanged(old, current) &&
+	if (vars.HasCurWADChanged(old, current) &&
 		!vars.IsThisMap(current,
 			currentPlusAlphaCurTribe,
 			currentPlusAlphaCurLevel,
@@ -498,12 +498,12 @@ update {
 	{
 		print("****************** RACE CONDITION DETECTED **********************\n" +
 			old.CurTribe             + ", " + old.CurLevel             + ", " +
-			old.CurMap               + ", " + old.CurType              + " old.CurWad\n" + 
+			old.CurMap               + ", " + old.CurType              + " old.CurWAD\n" + 
 			current.CurTribe         + ", " + current.CurLevel         + ", " +
-			current.CurMap           + ", " + current.CurType          + " current.CurWad\n" + 
+			current.CurMap           + ", " + current.CurType          + " current.CurWAD\n" + 
 			currentPlusAlphaCurTribe + ", " + currentPlusAlphaCurLevel + ", " +
-			currentPlusAlphaCurMap   + ", " + currentPlusAlphaCurType  + " currentPlusAlphaCurWad\n" +
-			"******* OVERWRITING current.CurWad WITH currentPlusAlphaCurWad *******");
+			currentPlusAlphaCurMap   + ", " + currentPlusAlphaCurType  + " currentPlusAlphaCurWAD\n" +
+			"******* OVERWRITING current.CurWAD WITH currentPlusAlphaCurWAD *******");
 		
 		// == Race condition correction ==
 		//
@@ -551,8 +551,8 @@ update {
 		old.PrevTribeSSX = vars.DummyInitialValue;
 		current.PrevTribeSSX = vars.DummyInitialValue;
 		
-		// Initialize WadB4GH (Wad Before GOA or Hub)
-		// WadB4GH is used for detecting re-entry for wrong warp, or if you GOA'd in the hub.
+		// Initialize WADB4GH (WAD Before GOA or Hub)
+		// WADB4GH is used for detecting re-entry for wrong warp, or if you GOA'd in the hub.
 		old.TribeB4GH = vars.DummyInitialValue;
 		old.LevelB4GH = vars.DummyInitialValue;
 		old.MapB4GH   = vars.DummyInitialValue;
@@ -582,8 +582,8 @@ update {
 		current.PrevTribeSSX = memory.ReadValue<int>((IntPtr)addrPrevTribeSSX);
 	}
 	
-	// Update WadB4GH
-	if (vars.HasMapIDChanged(old, current) &&
+	// Update WADB4GH
+	if (vars.HasCurWADChanged(old, current) &&
 		(
 			// now on GOA screen
 			vars.IsThisMap(current, 0, 0, 2, 3) ||
@@ -665,10 +665,10 @@ update {
 	if (settings["DebugOutput"])
 	{
 		string debugText = "";
-		
-		// CurWad changes
+
+		// CurWAD changes
 		if (settings["DO_MapChanges"] &&
-			vars.HasMapIDChanged(old, current))
+			vars.HasCurWADChanged(old, current))
 		{
 			debugText += "\n┃CurWad:  " +
 				old.CurTribe.ToString() + "." +
@@ -686,14 +686,14 @@ update {
 				currentPlusAlphaCurType.ToString() + ")";
 		}
 
-		// NewWad changes
+		// NewWAD changes
 		if (settings["DO_MapChanges"] && vars.era == "HD" && (
 			old.NewTribe != current.NewTribe ||
 			old.NewLevel != current.NewLevel ||
 			old.NewMap   != current.NewMap   ||
 			old.NewType  != current.NewType))
 		{
-			debugText += "\n┃NewWad:  " +
+			debugText += "\n┃NewWAD:  " +
 				old.NewTribe.ToString() + "." +
 				old.NewLevel.ToString() + "." +
 				old.NewMap.ToString() + "." +
@@ -705,14 +705,14 @@ update {
 				current.NewType.ToString();
 		}
 
-		// WadB4GH changes
-		if (settings["DO_WadB4GH"] && (
+		// WADB4GH changes
+		if (settings["DO_WADB4GH"] && (
 			old.TribeB4GH != current.TribeB4GH ||
 			old.LevelB4GH != current.LevelB4GH ||
 			old.MapB4GH   != current.MapB4GH   ||
 			old.TypeB4GH  != current.TypeB4GH))
 		{
-			debugText += "\n┃WadB4GH: ";
+			debugText += "\n┃WADB4GH: ";
 			
 			if (old.TribeB4GH == vars.DummyInitialValue || 
 				old.LevelB4GH == vars.DummyInitialValue ||
@@ -920,7 +920,7 @@ start {
 
 	// IL start
 	if (settings["ILstart"] && 
-		vars.HasMapIDChanged(old, current) &&
+		vars.HasCurWADChanged(old, current) &&
 		// Current map is a non-village map of Dante's World
 		// or a non-village level of the Gobbo tribes
 		(current.CurTribe == 5 ?
@@ -961,7 +961,7 @@ start {
 	
 	// OTS start (on SMP entry)
 	if (settings["OTSstart_SMP"] &&
-		vars.HasMapIDChanged(old, current) && vars.IsShopMap(current))
+		vars.HasCurWADChanged(old, current) && vars.IsShopMap(current))
 	{
 		return true;
 	}
@@ -992,7 +992,7 @@ start {
 split {
 	// Split on literally any map change
 	if (settings["SplitOnMapChange_literal"] &&
-		vars.HasMapIDChanged(old, current))
+		vars.HasCurWADChanged(old, current))
 	{
 		return true;
 	}
@@ -1009,7 +1009,7 @@ split {
 	// Prevent IL/OTS end from being skipped when exiting via GOA
 	// (is "old progress list" not available during this map change? which is why this must go up here?)
 	if (settings["SplitOnMapChange"] &&
-		vars.HasMapIDChanged(old, current) &&
+		vars.HasCurWADChanged(old, current) &&
 		// was on GOA screen
 		vars.IsThisMap(old, 0, 0, 2, 3) &&
 		// disallow split after GOAing in gobbo hub or secret hub (invalid spawn)
@@ -1034,7 +1034,7 @@ split {
 	// Prevent IL/OTS end from being skipped when exiting credits screen (ex: into Inca hub after beating Dante)
 	// (the "old progress list" is not available when this map change happens)
 	if (settings["SplitOnMapChange"] &&
-		vars.HasMapIDChanged(old, current) &&
+		vars.HasCurWADChanged(old, current) &&
 		// we came from the credits screen
 		vars.IsThisMap(old, 0, 0, 5, 0))
 	{
@@ -1051,7 +1051,7 @@ split {
 
 	// IL/OTS end
 	if (settings["SplitOnMapChange"] &&
-		vars.HasMapIDChanged(old, current) &&
+		vars.HasCurWADChanged(old, current) &&
 		// disallow a split coming out of the main menu
 		!vars.IsThisMap(old, 0, 0, 0, 3) &&
 		// disallow the split after the opening cutscene when you start a new game
