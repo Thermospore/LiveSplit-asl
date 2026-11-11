@@ -6,7 +6,7 @@ state("Croc2", "US") {
 	int CurLevel            : 0xA8C48;
 	int CurMap              : 0xA8C4C;
 	int CurType             : 0xA8C50;
-	// int FadeFinished        : 0xB7770;
+	int FadeFinished        : 0xB7770;
 	int InGameState         : 0xB7880;
 	bool IsCheatMenuOpen    : 0xB788C;
 	bool IsMapLoaded        : 0xB78C4;
@@ -28,7 +28,7 @@ state("Croc2", "EU") {
 	int CurLevel            : 0xA9C48;
 	int CurMap              : 0xA9C4C;
 	int CurType             : 0xA9C50;
-	// int FadeFinished        : 0xBE960;
+	int FadeFinished        : 0xBE960;
 	int InGameState         : 0xBEA70;
 	bool IsCheatMenuOpen    : 0xBEA7C;
 	bool IsMapLoaded        : 0xBEAB4;
@@ -309,6 +309,30 @@ startup {
 		// saveslot PrevTribe is already 0 (this is the main indicator)
 		// (in fact, this might be what actually causes the wrong warp!)
 		curState.PrevTribeSSX == 0);
+
+	// (experimental) Returns individual CurWAD ints as a single ExpandoObject
+	vars.CurWAD = new Func<dynamic, dynamic>(state => {
+		dynamic WAD = new System.Dynamic.ExpandoObject();
+		WAD.Tribe = (int)state.CurTribe;
+        WAD.Level = (int)state.CurLevel;
+        WAD.Map   = (int)state.CurMap;
+        WAD.Type  = (int)state.CurType;
+        return WAD;
+	});
+
+	// Convert WAD ID integers (Tribe, Level, Map, Type) into their filename
+	// See here for documentation of the naming scheme:
+	// https://github.com/hdc0/Croc-2-mods/blob/master/doc/wad_files.md#naming-scheme
+    vars.WAD2String = new Func<dynamic, string>(WAD => {
+        char typeChar = '?';
+        switch ((int)WAD.Type) {
+            case 0: typeChar = 'l'; break; // l(evel)
+            case 1: typeChar = 'b'; break; // b(oss)
+            case 2: typeChar = 's'; break; // s(ecret jigsaw)
+            case 3: typeChar = 'i'; break; // i(ntro)
+        }
+        return string.Format("t{0}{1}{2}m{3:D3}", WAD.Tribe, typeChar, WAD.Level, WAD.Map);
+    });
 }
 
 init {
@@ -448,6 +472,13 @@ update {
 	int currentPlusAlphaCurLevel = memory.ReadValue<int>((IntPtr)vars.AddrCurLevel);
 	int currentPlusAlphaCurMap   = memory.ReadValue<int>((IntPtr)vars.AddrCurMap);
 	int currentPlusAlphaCurType  = memory.ReadValue<int>((IntPtr)vars.AddrCurType);
+
+	// FIXME: properly integrate the ExpandoObject
+	dynamic currentPlusAlphaCurWAD = new System.Dynamic.ExpandoObject();
+    currentPlusAlphaCurWAD.Tribe = currentPlusAlphaCurTribe;
+    currentPlusAlphaCurWAD.Level = currentPlusAlphaCurLevel;
+    currentPlusAlphaCurWAD.Map   = currentPlusAlphaCurMap;
+    currentPlusAlphaCurWAD.Type  = currentPlusAlphaCurType;
 	
 	// == Race condition detection ==
 	// current is a race condition read iff old != current != currentPlusAlpha, assuming:
@@ -670,20 +701,10 @@ update {
 		if (settings["DO_MapChanges"] &&
 			vars.HasCurWADChanged(old, current))
 		{
-			debugText += "\n┃CurWad:  " +
-				old.CurTribe.ToString() + "." +
-				old.CurLevel.ToString() + "." +
-				old.CurMap.ToString() + "." +
-				old.CurType.ToString() + " →" +
-				"\n┃         " +
-				current.CurTribe.ToString() + "." +
-				current.CurLevel.ToString() + "." +
-				current.CurMap.ToString() + "." +
-				current.CurType.ToString() + " (" +
-				currentPlusAlphaCurTribe.ToString() + "." +
-				currentPlusAlphaCurLevel.ToString() + "." +
-				currentPlusAlphaCurMap.ToString() + "." +
-				currentPlusAlphaCurType.ToString() + ")";
+			debugText +=
+				"\n┃CurWAD:  " + vars.WAD2String(vars.CurWAD(old)) + " →" +
+				"\n┃         " + vars.WAD2String(vars.CurWAD(current)) + 
+				" (" + vars.WAD2String(currentPlusAlphaCurWAD) + ")";
 		}
 
 		// NewWAD changes
