@@ -827,10 +827,22 @@ update {
 		// Print output
 		if (debugText != "")
 		{
+			// Timer status
+			if (/*FIXME: put a setting here*/true)
+			{
+				var RTA = timer.CurrentTime.RealTime;
+				var IGT = timer.CurrentTime.GameTime;
+				var diff = RTA - IGT;
+
+				debugText =
+					"\n┃RTA: " + string.Format("{0:h\\:mm\\:ss\\.fff}", RTA) +
+					 " ┃ Loads removed:" +
+					"\n┃IGT: " + string.Format("{0:h\\:mm\\:ss\\.fff}", IGT) +
+					 " ┃ " + string.Format("{0:h\\:mm\\:ss\\.fff}", diff) +
+					debugText;
+			}
+
 			print("┏━ " + version.ToString() +
-				"\n┃RTA: " + timer.CurrentTime.RealTime.ToString() + " | Total load time" +
-				"\n┃IGT: " + timer.CurrentTime.GameTime.ToString() + " | " +
-				(timer.CurrentTime.RealTime - timer.CurrentTime.GameTime).ToString() +
 					debugText +
 				"\n┗━");
 		}
