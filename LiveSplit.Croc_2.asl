@@ -46,10 +46,9 @@ state("Croc2", "EU") {
 // 		  also classic (both steam and GOG)
 state("croc2", "HD-STEAM")
 {
-	// int CrocX               : 0xA8C3C, 0x14, 0x28, 0x2c;
-	// int CrocY               : 0xA8C3C, 0x14, 0x28, 0x30;
-	// int CrocZ               : 0xA8C3C, 0x14, 0x28, 0x34;
-		// FIXME: find these for HD
+	int CrocX               : 0xBC7CE8, 0x4C;
+	int CrocY               : 0xBC7CE8, 0x50;
+	int CrocZ               : 0xBC7CE8, 0x54;
 	int CurTribe            : 0xBC87D4;
 	int CurLevel            : 0xBC87D8;
 	int CurMap              : 0xBC87DC;
