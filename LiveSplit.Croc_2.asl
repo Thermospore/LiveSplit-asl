@@ -836,15 +836,23 @@ update {
 			if (/*FIXME: put a setting here*/true)
 			{
 				var RTA = timer.CurrentTime.RealTime;
-				var IGT = timer.CurrentTime.GameTime;
-				var diff = RTA - IGT;
+				if (RTA != TimeSpan.Zero)
+				{
+					// NOTE: IGT is null when you first boot up livesplit
+					var IGT = timer.CurrentTime.GameTime;
+					var diff = RTA - IGT;
 
-				debugText =
-					"\n┃RTA: " + string.Format("{0:h\\:mm\\:ss\\.fff}", RTA) +
-					 " ┃ Loads removed:" +
-					"\n┃IGT: " + string.Format("{0:h\\:mm\\:ss\\.fff}", IGT) +
-					 " ┃ " + string.Format("{0:h\\:mm\\:ss\\.fff}", diff) +
-					debugText;
+					debugText =
+						"\n┃RTA: " + string.Format("{0:h\\:mm\\:ss\\.fff}", RTA) +
+						" ┃ Loads removed:" +
+						"\n┃IGT: " + string.Format("{0:h\\:mm\\:ss\\.fff}", IGT) +
+						" ┃ " + string.Format("{0:h\\:mm\\:ss\\.fff}", diff) +
+						debugText;
+				}
+				else
+				{
+					debugText = "\n┃     [ TIMER IS RESET ]" + debugText;
+				}
 			}
 
 			print("┏━ " + version.ToString() +
