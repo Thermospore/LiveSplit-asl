@@ -60,6 +60,7 @@ state("croc2", "HD-STEAM")
 		// HD (int):  menu closed = 0, open = 0xFFFFFFFF (or, -1)
 		// Switching this to a bool, so behaviour is the same between OG and HD
 	// IsMapLoaded - couldn't find an HD equivalent; replaced with IsMapIDChanging
+		// FIXME: looks like we will replace it with CurrentMap
 	int NewMainState        : 0xB90D3C;
 	// int IsNewMainStateValid : 0xB7934;
 		// FIXME: find this for save slot start, if you can
@@ -82,6 +83,7 @@ state("croc2", "HD-STEAM")
 		// FIXME: think about if these could be useful for race condition prevention (or for other parts of the autosplitter)
 	long CurrentMap         : 0xB90D70;
 		// FIXME: candidate for use with load removal
+		// FIXME: rename this? will get mixed up with CurMap (as in CurWAD)
 }
 
 startup {
@@ -298,6 +300,8 @@ startup {
 	// Returns true iff a wrong warp is being performed
 	vars.IsWrongWarp = new Func<dynamic, dynamic, bool>((oldState, curState) =>
 		// old map is not hub map - can't use functions in functions :(
+		// FIXME: you *can* use fns in fns! see GenerateWAD() below.
+		//        just define the Func locally in this scope before adding it to vars.
 		!(oldState.CurTribe >= 1 && oldState.CurTribe <= 4 &&
 		oldState.CurLevel == 1 && oldState.CurMap == 1 && oldState.CurType == 0) &&
 		// new map is hub map
@@ -309,29 +313,53 @@ startup {
 		// (in fact, this might be what actually causes the wrong warp!)
 		curState.PrevTribeSSX == 0);
 
-	// (experimental) Returns individual CurWAD ints as a single ExpandoObject
-	vars.CurWAD = new Func<dynamic, dynamic>(state => {
-		dynamic WAD = new System.Dynamic.ExpandoObject();
-		WAD.Tribe = (int)state.CurTribe;
-        WAD.Level = (int)state.CurLevel;
-        WAD.Map   = (int)state.CurMap;
-        WAD.Type  = (int)state.CurType;
-        return WAD;
-	});
+	// Used for uninitialized WAD integers (Tribe, Level, Map, Type)
+	// (maybe try using `int?`s plus actual `null`s?)
+	const int NULL_VAL = -1;
+	vars.NULL_VAL = NULL_VAL;
 
 	// Convert WAD ID integers (Tribe, Level, Map, Type) into their filename
 	// See here for documentation of the naming scheme:
 	// https://github.com/hdc0/Croc-2-mods/blob/master/doc/wad_files.md#naming-scheme
-    vars.WAD2String = new Func<dynamic, string>(WAD => {
-        char typeChar = '?';
-        switch ((int)WAD.Type) {
-            case 0: typeChar = 'l'; break; // l(evel)
-            case 1: typeChar = 'b'; break; // b(oss)
-            case 2: typeChar = 's'; break; // s(ecret jigsaw)
-            case 3: typeChar = 'i'; break; // i(ntro)
-        }
-        return string.Format("t{0}{1}{2}m{3:D3}", WAD.Tribe, typeChar, WAD.Level, WAD.Map);
-    });
+    Func<int, int, int, int, string> GenerateWADString = (Tribe, Level, Map, Type) => {
+		// FIXME: use actual null, instead of vars.NULL_VAL?
+		if (Tribe == NULL_VAL || Level == NULL_VAL || Map == NULL_VAL || Type == NULL_VAL)
+		{
+			return "[ null ]";
+		}
+		else
+		{
+			char typeChar = '?';
+			switch (Type) {
+				case 0: typeChar = 'l'; break; // l(evel)
+				case 1: typeChar = 'b'; break; // b(oss)
+				case 2: typeChar = 's'; break; // s(ecret jigsaw)
+				case 3: typeChar = 'i'; break; // i(ntro)
+			}
+			return string.Format("t{0}{1}{2}m{3:D3}", Tribe, typeChar, Level, Map);
+		}
+    };
+	vars.GenerateWADString = GenerateWADString;
+
+	// Takes in the four WAD ID ints and returns a packaged ExpandoObject
+	Func<int, int, int, int, dynamic> GenerateWAD = (Tribe, Level, Map, Type) => {
+		dynamic WAD = new System.Dynamic.ExpandoObject();
+		WAD.Tribe = Tribe;
+		WAD.Level = Level;
+		WAD.Map   = Map;
+		WAD.Type  = Type;
+		WAD.ID    = GenerateWADString(Tribe, Level, Map, Type);
+		return WAD;
+	};
+	vars.GenerateWAD = GenerateWAD;
+
+	// Returns CurWAD as a packaged ExpandoObject
+	vars.CurWAD = new Func<dynamic, dynamic>(state => GenerateWAD(
+		state.CurTribe, state.CurLevel, state.CurMap, state.CurType));
+
+	// Returns NewWAD as a packaged ExpandoObject
+	vars.NewWAD = new Func<dynamic, dynamic>(state => GenerateWAD(
+		state.NewTribe, state.NewLevel, state.NewMap, state.NewType));
 }
 
 init {
@@ -473,11 +501,9 @@ update {
 	int currentPlusAlphaCurType  = memory.ReadValue<int>((IntPtr)vars.AddrCurType);
 
 	// FIXME: properly integrate the ExpandoObject
-	dynamic currentPlusAlphaCurWAD = new System.Dynamic.ExpandoObject();
-    currentPlusAlphaCurWAD.Tribe = currentPlusAlphaCurTribe;
-    currentPlusAlphaCurWAD.Level = currentPlusAlphaCurLevel;
-    currentPlusAlphaCurWAD.Map   = currentPlusAlphaCurMap;
-    currentPlusAlphaCurWAD.Type  = currentPlusAlphaCurType;
+	dynamic currentPlusAlphaCurWAD = vars.GenerateWAD(
+		currentPlusAlphaCurTribe, currentPlusAlphaCurLevel,
+		currentPlusAlphaCurMap, currentPlusAlphaCurType);
 	
 	// == Race condition detection ==
 	// current is a race condition read iff old != current != currentPlusAlpha, assuming:
@@ -572,25 +598,20 @@ update {
 	//
 	// Unfortunately this can't simply be initialized in `startup` or `init`,
 	// because when livesplit detects the EU version, the old/current variables get wiped.
+	// FIXME: ↑ give this another shot
 	if (!vars.customCurrentVarsAreInitialized)
 	{
-		vars.DummyInitialValue = -1;
-
 		// Initialize PrevTribeSSX
 		// Currently it's just used for detecting wrong warps
-		old.PrevTribeSSX = vars.DummyInitialValue;
-		current.PrevTribeSSX = vars.DummyInitialValue;
+		old.PrevTribeSSX = vars.NULL_VAL;
+		current.PrevTribeSSX = vars.NULL_VAL;
 		
 		// Initialize WADB4GH (WAD Before GOA or Hub)
 		// WADB4GH is used for detecting re-entry for wrong warp, or if you GOA'd in the hub.
-		old.TribeB4GH = vars.DummyInitialValue;
-		old.LevelB4GH = vars.DummyInitialValue;
-		old.MapB4GH   = vars.DummyInitialValue;
-		old.TypeB4GH  = vars.DummyInitialValue;
-		current.TribeB4GH = vars.DummyInitialValue;
-		current.LevelB4GH = vars.DummyInitialValue;
-		current.MapB4GH   = vars.DummyInitialValue;
-		current.TypeB4GH  = vars.DummyInitialValue;
+		old.WADB4GH = vars.GenerateWAD(
+			vars.NULL_VAL, vars.NULL_VAL, vars.NULL_VAL, vars.NULL_VAL);
+		current.WADB4GH = vars.GenerateWAD(
+			vars.NULL_VAL, vars.NULL_VAL, vars.NULL_VAL, vars.NULL_VAL);
 		
 		vars.customCurrentVarsAreInitialized = true;
 	}
@@ -621,10 +642,8 @@ update {
 			(vars.IsGobboHub(current) && !vars.IsThisMap(old, 0, 0, 2, 3)))
 		)
 	{
-		current.TribeB4GH = old.CurTribe;
-		current.LevelB4GH = old.CurLevel;
-		current.MapB4GH = old.CurMap;
-		current.TypeB4GH = old.CurType;
+		current.WADB4GH = vars.GenerateWAD(
+			old.CurTribe, old.CurLevel, old.CurMap, old.CurType);
 	}
 	
 	// Speed display
@@ -701,61 +720,27 @@ update {
 			vars.HasCurWADChanged(old, current))
 		{
 			debugText +=
-				"\n┃CurWAD:  " + vars.WAD2String(vars.CurWAD(old)) + " →" +
-				"\n┃         " + vars.WAD2String(vars.CurWAD(current)) + 
-				" (" + vars.WAD2String(currentPlusAlphaCurWAD) + ")";
+				"\n┃CurWAD:  " + vars.CurWAD(old).ID + " →" +
+				"\n┃         " + vars.CurWAD(current).ID + 
+				" (" + currentPlusAlphaCurWAD.ID + ")";
 		}
 
 		// NewWAD changes
-		if (settings["DO_MapChanges"] && vars.era == "HD" && (
-			old.NewTribe != current.NewTribe ||
-			old.NewLevel != current.NewLevel ||
-			old.NewMap   != current.NewMap   ||
-			old.NewType  != current.NewType))
+		if (/*FIXME: settings[""] &&*/ vars.era == "HD" &&
+			vars.NewWAD(old).ID != vars.NewWAD(current).ID)
 		{
-			debugText += "\n┃NewWAD:  " +
-				old.NewTribe.ToString() + "." +
-				old.NewLevel.ToString() + "." +
-				old.NewMap.ToString() + "." +
-				old.NewType.ToString() + " →" +
-				"\n┃         " +
-				current.NewTribe.ToString() + "." +
-				current.NewLevel.ToString() + "." +
-				current.NewMap.ToString() + "." +
-				current.NewType.ToString();
+			debugText +=
+				"\n┃NewWAD:  " + vars.NewWAD(old).ID + " →" +
+				"\n┃         " + vars.NewWAD(current).ID;
 		}
 
 		// WADB4GH changes
-		if (settings["DO_WADB4GH"] && (
-			old.TribeB4GH != current.TribeB4GH ||
-			old.LevelB4GH != current.LevelB4GH ||
-			old.MapB4GH   != current.MapB4GH   ||
-			old.TypeB4GH  != current.TypeB4GH))
+		if (settings["DO_WADB4GH"] &&
+			old.WADB4GH.ID != current.WADB4GH.ID)
 		{
-			debugText += "\n┃WADB4GH: ";
-			
-			if (old.TribeB4GH == vars.DummyInitialValue || 
-				old.LevelB4GH == vars.DummyInitialValue ||
-				old.MapB4GH   == vars.DummyInitialValue ||
-				old.TypeB4GH  == vars.DummyInitialValue)
-			{
-				debugText += "[unknown]";
-			}
-			else
-			{
-				debugText +=
-					old.TribeB4GH.ToString() + "." +
-					old.LevelB4GH.ToString() + "." +
-					old.MapB4GH.ToString() + "." +
-					old.TypeB4GH.ToString();
-
-			}
-			
-			debugText += " →\n┃         " + 
-				current.TribeB4GH.ToString() + "." +
-				current.LevelB4GH.ToString() + "." +
-				current.MapB4GH.ToString() + "." +
-				current.TypeB4GH.ToString();
+			debugText +=
+				"\n┃WADB4GH: " + old.WADB4GH.ID + " →" +
+				"\n┃         " + current.WADB4GH.ID;
 		}
 		
 		// PrevTribeSSX changes
@@ -906,10 +891,7 @@ start {
 				if (current.MainState == vars.MainState_MainMenu &&
 					// current.IsNewMainStateValid != 0 &&
 					current.NewMainState == vars.MainState_Running &&
-					current.NewTribe == 1 &&
-					current.NewLevel == 1 &&
-					current.NewMap   == 2 &&
-					current.NewType  == 3)
+					vars.NewWAD(current).ID == "t1i1m002")
 				{
 					return true;
 				}
@@ -968,10 +950,7 @@ start {
 			// was on GOA screen
 			vars.IsThisMap(old, 0, 0, 2, 3) &&
 			// map before GOA is equal to current map (which is already constrained to hub)
-			current.TribeB4GH == current.CurTribe &&
-			current.LevelB4GH == current.CurLevel &&
-			current.MapB4GH == current.CurMap &&
-			current.TypeB4GH == current.CurType
+			current.WADB4GH.ID == vars.CurWAD(current).ID
 		) &&
 		// disallow starting on doing a wrong warp (invalid spawn)
 		!(vars.era == "OG" && vars.IsWrongWarp(old, current)))
@@ -1042,10 +1021,7 @@ split {
 				current.CurType == 0)
 			) &&
 			// map before GOA is equal to current map (hub)
-			current.TribeB4GH == current.CurTribe &&
-			current.LevelB4GH == current.CurLevel &&
-			current.MapB4GH == current.CurMap &&
-			current.TypeB4GH == current.CurType
+			current.WADB4GH.ID == vars.CurWAD(current).ID
 		))
 	{
 		return true;
@@ -1091,19 +1067,19 @@ split {
 			// General case
 			(
 				vars.IsGobboHub(old) && !vars.IsGobboHub(current) &&
-				old.TribeB4GH == current.CurTribe &&
-				old.LevelB4GH == current.CurLevel &&
+				old.WADB4GH.Tribe == current.CurTribe &&
+				old.WADB4GH.Level == current.CurLevel &&
 					// (allow the map to be different, so this works for levels like flytrap)
-				old.TypeB4GH == current.CurType &&
+				old.WADB4GH.Type == current.CurType &&
 				current.AllowReturnToHub == 1
 			) ||
 			// Masher (the only wrong warpable level with a cutscene)
 			(
 				// entered caveman hub from masher
-				current.TribeB4GH == 3 &&
-				current.LevelB4GH == 2 &&
+				current.WADB4GH.Tribe == 3 &&
+				current.WADB4GH.Level == 2 &&
 					// (allow the map to be different, so this works for overworld or boss room)
-				current.TypeB4GH == 1 &&
+				current.WADB4GH.Type == 1 &&
 				// entering masher from caveman hub
 				(
 					// caveman hub -> masher cutscene
