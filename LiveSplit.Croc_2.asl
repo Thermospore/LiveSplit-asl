@@ -7,7 +7,7 @@ state("Croc2", "US") {
 	int CurMap              : 0xA8C4C;
 	int CurType             : 0xA8C50;
 	int FadeFinished        : 0xB7770;
-	int InGameState         : 0xB7880;
+	int GameOver            : 0xB7880; // AKA InGameState
 	bool IsCheatMenuOpen    : 0xB788C;
 	bool IsMapLoaded        : 0xB78C4;
 	int NewMainState        : 0xB7930;
@@ -29,7 +29,7 @@ state("Croc2", "EU") {
 	int CurMap              : 0xA9C4C;
 	int CurType             : 0xA9C50;
 	int FadeFinished        : 0xBE960;
-	int InGameState         : 0xBEA70;
+	int GameOver            : 0xBEA70;
 	bool IsCheatMenuOpen    : 0xBEA7C;
 	bool IsMapLoaded        : 0xBEAB4;
 	int NewMainState        : 0xBEB20;
@@ -54,7 +54,7 @@ state("croc2", "HD-STEAM")
 	int CurMap              : 0xBC87DC;
 	int CurType             : 0xBC87E0;
 	int FadeFinished        : 0xB902D0;
-	int InGameState         : 0xB90D30;
+	int GameOver            : 0xB90D30;
 	bool IsCheatMenuOpen    : 0xB8E0F8;
 		// OG (int):  menu closed = 0, open = 1
 		// HD (int):  menu closed = 0, open = 0xFFFFFFFF (or, -1)
@@ -170,8 +170,8 @@ startup {
 		"NewMainState changes", "DebugOutput");
 		settings.Add("DO_IsNewMainStateValid", true,
 		"IsNewMainStateValid changes", "DebugOutput");
-		settings.Add("DO_InGameState", true,
-		"InGameState changes", "DebugOutput");
+		settings.Add("DO_GameOver", true,
+		"GameOver changes", "DebugOutput");
 		settings.Add("DO_IsCheatMenuOpen", true,
 		"IsCheatMenuOpen changes", "DebugOutput");
 		settings.Add("DO_AllowReturnToHub", true,
@@ -360,6 +360,18 @@ startup {
 	// Returns NewWAD as a packaged ExpandoObject
 	vars.NewWAD = new Func<dynamic, dynamic>(state => GenerateWAD(
 		state.NewTribe, state.NewLevel, state.NewMap, state.NewType));
+
+	// Define GameOver constants (found inside the HD croc2.exe)
+	vars.GO_NORMAL        = 0;
+	vars.GO_CONTINUE      = 1;
+	vars.GO_GAMEOVER      = 2;
+	vars.GO_LEVELCOMPLETE = 3;
+	vars.GO_CREDITS       = 4;
+	vars.GO_RESETLEVEL    = 5;
+	vars.GO_DOOR          = 6;
+	vars.GO_NEWLEVEL      = 7;
+	vars.GO_TITLE         = 8;
+	vars.GO_LEVELSELECT   = 9;
 }
 
 init {
@@ -416,7 +428,7 @@ init {
 	}
 
 	// Set era dependent constants
-	// FIXME: rename MainState/InGameState to their official names
+	// FIXME: rename MainState/GameOver to their official names
 	// - https://discord.com/channels/313375426112389123/408694062862958592/1568992386514948107
 	// - https://temp-quartz-test.pages.dev/MainState#proper-variable-name
 	// FIXME: compare MainState behaviour with og
@@ -777,15 +789,15 @@ update {
 			debugText += "\n┃FadeFinished: " + old.FadeFinished.ToString() +
 				" → " + current.FadeFinished.ToString();
 		}
-		if (current.FadeFinished == 1 && current.InGameState != 0)
+		if (current.FadeFinished == 1 && current.GameOver != vars.GO_NORMAL)
 			print("★★★ IS THIS LIVESPLIT CYCLE A LOAD?? ★★★");
 		
-		// InGameState changes
-		if (settings["DO_InGameState"] &&
-			old.InGameState != current.InGameState)
+		// GameOver changes
+		if (settings["DO_GameOver"] &&
+			old.GameOver != current.GameOver)
 		{
-			debugText += "\n┃InGameState: " + old.InGameState.ToString() +
-				" → " + current.InGameState.ToString();
+			debugText += "\n┃GameOver: " + old.GameOver.ToString() +
+				" → " + current.GameOver.ToString();
 		}
 		
 		// IsCheatMenuOpen changes
@@ -1222,7 +1234,7 @@ isLoading {
 			// NOTE: for the time being, we are pickling OG load removal code as-is. See:
 			// https://discord.com/channels/313375426112389123/408694062862958592/1569129837946339411
 			current.MainState == vars.MainState_Running && (
-			current.InGameState == 6 || current.InGameState == 7 ||
+			current.GameOver == vars.GO_DOOR || current.GameOver == vars.GO_NEWLEVEL ||
 			!current.IsMapLoaded);
 
 		case "HD": return
@@ -1232,7 +1244,7 @@ isLoading {
 
 			// FIXME: is this even a load???
 			// FIXME: this breaks on GO. probably on credits too. need to add restrictions
-			(current.FadeFinished == 1 && current.InGameState != 0);
+			(current.FadeFinished == 1 && current.GameOver != vars.GO_NORMAL);
 
 		
 		// FIXME: aggressive HD load removal code that we will probably not use. See:
@@ -1240,18 +1252,18 @@ isLoading {
 		case "XX": return
 			// Main transition between wads.
 			// This replaces IsMapLoaded from OG.
-			// current.InGameState != 1 is to exclude GO screen, which behaves differently.
-			(vars.IsMapIDChanging(current) && current.InGameState != 1) ||
+			// current.GameOver != vars.GO_CONTINUE is to exclude GO screen, which behaves differently.
+			(vars.IsMapIDChanging(current) && current.GameOver != vars.GO_CONTINUE) ||
 
-			// InGameState transitions
-			current.InGameState == 5 || // Death warp
+			// GameOver transitions
+			current.GameOver == vars.GO_RESETLEVEL || // Death warp
 				// ↑ Could be controversial; please give your thoughts!
-			current.InGameState == 6 || // Going through door within wad
-			current.InGameState == 7 || // Transitioning between wads
-			current.InGameState == 8 || // Exiting to main menu
+			current.GameOver == vars.GO_DOOR       || // Going through door within wad
+			current.GameOver == vars.GO_NEWLEVEL   || // Transitioning between wads
+			current.GameOver == vars.GO_TITLE      || // Exiting to main menu
 
 			// Transitioning into the GO wad
-			(current.InGameState == 1 && !vars.IsThisMap(current, 0, 0, 2, 3)) ||
+			(current.GameOver == vars.GO_CONTINUE && !vars.IsThisMap(current, 0, 0, 2, 3)) ||
 
 			// Transitioning out of the GO wad when selecting "No"
 			(current.NewMainState == vars.MainState_MainMenu && vars.IsThisMap(current, 0, 0, 2, 3));
