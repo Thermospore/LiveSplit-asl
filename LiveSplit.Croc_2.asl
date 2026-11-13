@@ -495,15 +495,12 @@ update {
 	
 	// == Manually read the map ID again (currentPlusAlpha) ==
 	// We will use it to verify LiveSplit's read (current)
-	int currentPlusAlphaCurTribe = memory.ReadValue<int>((IntPtr)vars.AddrCurTribe);
-	int currentPlusAlphaCurLevel = memory.ReadValue<int>((IntPtr)vars.AddrCurLevel);
-	int currentPlusAlphaCurMap   = memory.ReadValue<int>((IntPtr)vars.AddrCurMap);
-	int currentPlusAlphaCurType  = memory.ReadValue<int>((IntPtr)vars.AddrCurType);
-
-	// FIXME: properly integrate the ExpandoObject
 	dynamic currentPlusAlphaCurWAD = vars.GenerateWAD(
-		currentPlusAlphaCurTribe, currentPlusAlphaCurLevel,
-		currentPlusAlphaCurMap, currentPlusAlphaCurType);
+		memory.ReadValue<int>((IntPtr)vars.AddrCurTribe),
+		memory.ReadValue<int>((IntPtr)vars.AddrCurLevel),
+		memory.ReadValue<int>((IntPtr)vars.AddrCurMap),
+		memory.ReadValue<int>((IntPtr)vars.AddrCurType)
+	);
 	
 	// == Race condition detection ==
 	// current is a race condition read iff old != current != currentPlusAlpha, assuming:
@@ -546,20 +543,15 @@ update {
 	//          o   c a
 	// old map  |  new map
 	if (vars.HasCurWADChanged(old, current) &&
-		!vars.IsThisMap(current,
-			currentPlusAlphaCurTribe,
-			currentPlusAlphaCurLevel,
-			currentPlusAlphaCurMap,
-			currentPlusAlphaCurType))
+		currentPlusAlphaCurWAD.ID != vars.CurWAD(current).ID)
 	{
-		print("****************** RACE CONDITION DETECTED **********************\n" +
-			old.CurTribe             + ", " + old.CurLevel             + ", " +
-			old.CurMap               + ", " + old.CurType              + " old.CurWAD\n" + 
-			current.CurTribe         + ", " + current.CurLevel         + ", " +
-			current.CurMap           + ", " + current.CurType          + " current.CurWAD\n" + 
-			currentPlusAlphaCurTribe + ", " + currentPlusAlphaCurLevel + ", " +
-			currentPlusAlphaCurMap   + ", " + currentPlusAlphaCurType  + " currentPlusAlphaCurWAD\n" +
-			"******* OVERWRITING current.CurWAD WITH currentPlusAlphaCurWAD *******");
+		print("★★★★ RACE CONDITION DETECTED ★★★★\n\n  " +
+			vars.CurWAD(old).ID       + " - old.CurWAD\n  " + 
+			vars.CurWAD(current).ID   + " - current.CurWAD\n  " + 
+			currentPlusAlphaCurWAD.ID + " - currentPlusAlphaCurWAD\n\n" +
+			"OVERWRITING current.CurWAD\n" +
+			"WITH currentPlusAlphaCurWAD\n" +
+			"★★★★★★★★★★★★★★★★★★★★★");
 		
 		// == Race condition correction ==
 		//
@@ -570,10 +562,10 @@ update {
 		// So instead of overwriting current with old (thus delaying the map change / split until next cycle),
 		// let's overwrite it with currentPlusAlpha (so we split right away like we historically have,
 		// while still correcting the corrupt data!)
-		current.CurTribe = currentPlusAlphaCurTribe;
-		current.CurLevel = currentPlusAlphaCurLevel;
-		current.CurMap = currentPlusAlphaCurMap;
-		current.CurType = currentPlusAlphaCurType;
+		current.CurTribe = currentPlusAlphaCurWAD.Tribe;
+		current.CurLevel = currentPlusAlphaCurWAD.Level;
+		current.CurMap   = currentPlusAlphaCurWAD.Map;
+		current.CurType  = currentPlusAlphaCurWAD.Type;
 	}
 	// == misc notes ==
 	//
