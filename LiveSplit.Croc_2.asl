@@ -844,9 +844,9 @@ update {
 
 					debugText =
 						"\n┃RTA: " + string.Format("{0:h\\:mm\\:ss\\.fff}", RTA) +
-						" ┃ Loads removed:" +
+						 " ┃ Loads removed:" +
 						"\n┃IGT: " + string.Format("{0:h\\:mm\\:ss\\.fff}", IGT) +
-						" ┃ " + string.Format("{0:h\\:mm\\:ss\\.fff}", diff) +
+						 " ┃ " + string.Format("{0:h\\:mm\\:ss\\.fff}", diff) +
 						debugText;
 				}
 				else
@@ -855,9 +855,12 @@ update {
 				}
 			}
 
+			string horizontalbar = vars.HasCurWADChanged(old, current) ?
+				"━━━━━━━━━━━━━━━━━━━━━━━━━━━" : "";
+
 			print("┏━ " + version.ToString() +
 					debugText +
-				"\n┗━");
+				"\n┗━" + horizontalbar);
 		}
 	}
 	
