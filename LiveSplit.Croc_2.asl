@@ -10,9 +10,9 @@ state("Croc2", "US") {
 	int GameOver            : 0xB7880; // AKA InGameState
 	bool IsCheatMenuOpen    : 0xB788C;
 	bool IsMapLoaded        : 0xB78C4;
-	int NewMainState        : 0xB7930;
-	int IsNewMainStateValid : 0xB7934;
-	int MainState           : 0xB793C;
+	int NewGameState        : 0xB7930;
+	int IsNewGameStateValid : 0xB7934;
+	int GameState           : 0xB793C; // AKA MainState
 	int Inputs              : 0x12A590;
 	int GemCounter          : 0x12AECC;
 	int GobboCounter        : 0x12AEE0;
@@ -32,9 +32,9 @@ state("Croc2", "EU") {
 	int GameOver            : 0xBEA70;
 	bool IsCheatMenuOpen    : 0xBEA7C;
 	bool IsMapLoaded        : 0xBEAB4;
-	int NewMainState        : 0xBEB20;
-	int IsNewMainStateValid : 0xBEB24;
-	int MainState           : 0xBEB2C;
+	int NewGameState        : 0xBEB20;
+	int IsNewGameStateValid : 0xBEB24;
+	int GameState           : 0xBEB2C;
 	int Inputs              : 0x131780;
 	int GemCounter          : 0x1320BC;
 	int GobboCounter        : 0x1320D0;
@@ -61,10 +61,10 @@ state("croc2", "HD-STEAM")
 		// Switching this to a bool, so behaviour is the same between OG and HD
 	// IsMapLoaded - couldn't find an HD equivalent; replaced with IsMapIDChanging
 		// FIXME: looks like we will replace it with CurrentMap
-	int NewMainState        : 0xB90D3C;
-	// int IsNewMainStateValid : 0xB7934;
+	int NewGameState        : 0xB90D3C;
+	// int IsNewGameStateValid : 0xB7934;
 		// FIXME: find this for save slot start, if you can
-	int MainState           : 0xB5D5E8; 
+	int GameState           : 0xB5D5E8; 
 	// int Inputs              : 0x12A590;
 		// only used for the "Start on any input" option
 		// browse memory around 0xBC4B54 for some candidates
@@ -164,12 +164,12 @@ startup {
 		"WADB4GH changes", "DebugOutput");
 		settings.Add("DO_PrevTribeSSX", true,
 		"PrevTribeSSX changes", "DebugOutput");
-		settings.Add("DO_MainState", true,
-		"MainState changes", "DebugOutput");
-		settings.Add("DO_NewMainState", true,
-		"NewMainState changes", "DebugOutput");
-		settings.Add("DO_IsNewMainStateValid", true,
-		"IsNewMainStateValid changes", "DebugOutput");
+		settings.Add("DO_GameState", true,
+		"GameState changes", "DebugOutput");
+		settings.Add("DO_NewGameState", true,
+		"NewGameState changes", "DebugOutput");
+		settings.Add("DO_IsNewGameStateValid", true,
+		"IsNewGameStateValid changes", "DebugOutput");
 		settings.Add("DO_GameOver", true,
 		"GameOver changes", "DebugOutput");
 		settings.Add("DO_IsCheatMenuOpen", true,
@@ -428,12 +428,9 @@ init {
 	}
 
 	// Set era dependent constants
-	// FIXME: rename MainState/GameOver to their official names
-	// - https://discord.com/channels/313375426112389123/408694062862958592/1568992386514948107
-	// - https://temp-quartz-test.pages.dev/MainState#proper-variable-name
-	// FIXME: compare MainState behaviour with og
-	// - timing of MainState changes, relative to wad ID etc (particularly Running)
-	// - value of MainState in cutscene vs main gameplay vs title screen demos
+	// FIXME: compare GameState behaviour with og
+	// - timing of GameState changes, relative to wad ID etc (particularly Running)
+	// - value of GameState in cutscene vs main gameplay vs title screen demos
 	vars.OffsetOfStratPCField = game.Is64Bit() ? 0x000 : 0x00C;
 	vars.OffsetOfPtrToNextStrat = game.Is64Bit() ? 0x008 : 0x000;
 	switch ((string)vars.era)
@@ -441,49 +438,51 @@ init {
 		case "OG":
 			vars.ProgressListOffset = 0x2d0;
 
-			vars.MainState_OpeningLogos   =  8;
-			// vars.MainState_Logos2IntroCS doesn't appear to be a thing in og
-			vars.MainState_Running        = 11;
-			vars.MainState_IntroCS2MM     = 19;
-			vars.MainState_MainMenu       = 16;
-			vars.MainState_Demo           =  5;
-			vars.MainState_Options        = 14; // Options screen (only the one on main menu, not in-game)
-			// vars.MainState_Croc2pedia isn't a thing, ofc
-			vars.MainState_LevelSelect    = 18; // This is the blue screen where you select a wad ID (only accessable through poking memory)
-			vars.MainState_NGInitials     =  9; // New Game - entering initials
-			vars.MainState_NGSaveSlot     =  2; // New Game - select save slot
+			// FIXME: I'm in the middle of mapping the old MainState variables to GS_ ones
+			//        See GameState article on C2SN for ref
 			vars.MainState_LGSaveSlot     =  1; // Load Game - select save slot
-			vars.MainState_ContinueYN     =  3; // "Continue? Yes / No" screen when you game over
-			vars.MainState_GameOver       = 12; // "Game Over" screen (when you run out of lives and select "No" on the "Continue?" screen, or when you exit the game from the pause menu)
-			vars.MainState_Credits		  =  4;
-			// vars.MainState_Credits2Inca   = ??; // FIXME: see if this exists in OG
-			vars.MainState_ExitGame       =  6;
+			vars.MainState_NGSaveSlot     =  2; // New Game - select save slot
+			vars.GS_CONTINUE       =  3;
+			vars.GS_CREDITS		   =  4;
+			vars.GS_DEMO           =  5;
+			vars.MainState_ExitGame       =  6; // Might be GS_EXIT_SLIDESHOW?
+			vars.GS_SPLASH         =  8;
+			vars.GS_INITIALS       =  9;
+			vars.GS_GAME           = 11;
+			vars.GS_GAMEOVER       = 12;
+			vars.GS_LANGUAGE       = 13;
+			vars.GS_OPTIONS        = 14;
+			vars.GS_TITLE          = 16;
+			vars.GS_LEVELSELECT    = 18;
+			vars.GS_GO_TO_TITLE    = 19;
+			// vars.GS_GO_TO_HUB4   = ??; // Need to test
+
 			break;
 		
 		case "HD":
 			vars.ProgressListOffset = 0x30C;
 
-			vars.MainState_OpeningLogos   = 20;
-			vars.MainState_Logos2IntroCS  =  1; // Transition from the intro Logos -> Intro CutScene where the scientist is taken by dante
-			vars.MainState_Running        =  4; // Includes both active gameplay and cutscenes
-				// Confirmed cutscenes:
-				// Intro scientist cutscene (both when booting game, and as a main menu attract screen)
-				// Cutscene on new save where Croc gets launched
-				// FIXME: ...oh is it simply all cutscenes lol?
-			vars.MainState_IntroCS2MM     = 15; // Transition from the scientist intro cutscene -> Main Menu
-			vars.MainState_MainMenu       =  3;
-			vars.MainState_Demo           =  5; // Demos that run as an attract screen on the main menu
-			// vars.MainState_Options for HD is just on the main menu
-			vars.MainState_Croc2pedia     = 18;
-			// vars.MainState_LevelSelect    = 14; FIXME: is this still in HD? could be 14? see: https://tcrf.net/Croc_2_(Windows,_PlayStation)#Level_Select
-			// vars.MainState_NGInitials |
-			// vars.MainState_NGSaveSlot | for HD, this all takes place on the main menu
-			// vars.MainState_LGSaveSlot |
-			vars.MainState_ContinueYN     = 09;
-			// vars.MainState_GameOver is not in HD; selecting no on ContinueYN takes you straight to main menu
-			vars.MainState_Credits		  = 12;
-			vars.MainState_Credits2Inca   = 16; // After you beat dante, the transition from the credits back into inca village
-			// vars.MainState_ExitGame doesn't seem to be a thing; the game just quits
+			vars.GS_NONE           =  0;
+			vars.GS_INIT           =  1;
+			vars.GS_LANGUAGE       =  2;
+			vars.GS_TITLE          =  3;
+			vars.GS_GAME           =  4;
+			vars.GS_DEMO           =  5;
+			vars.GS_OPTIONS        =  6;
+			vars.GS_INITIALS       =  7;
+			vars.GS_CHOOSELOAD     =  8;
+			vars.GS_CONTINUE       =  9;
+			vars.GS_INTRO          = 10;
+			vars.GS_GAMEOVER       = 11;
+			vars.GS_CREDITS        = 12;
+			vars.GS_NEXTLEVEL      = 13;
+			vars.GS_LEVELSELECT    = 14;
+			vars.GS_GO_TO_TITLE    = 15;
+			vars.GS_GO_TO_HUB4     = 16;
+			vars.GS_EXIT_SLIDESHOW = 17;
+			vars.GS_BONUS_CONTENT  = 18;
+			vars.GS_LOAD_SCREEN    = 19;
+			vars.GS_SPLASH         = 20;
 			break;
 
 		default:
@@ -756,29 +755,29 @@ update {
 				" → " + current.PrevTribeSSX.ToString();
 		}
 		
-		// MainState changes
-		if (settings["DO_MainState"] &&
-			old.MainState != current.MainState)
+		// GameState changes
+		if (settings["DO_GameState"] &&
+			old.GameState != current.GameState)
 		{
-			debugText += "\n┃MainState: " + old.MainState.ToString() +
-				" → " + current.MainState.ToString();
+			debugText += "\n┃GameState: " + old.GameState.ToString() +
+				" → " + current.GameState.ToString();
 		}
 		
-		// NewMainState changes
-		if (settings["DO_NewMainState"] &&
-			old.NewMainState != current.NewMainState)
+		// NewGameState changes
+		if (settings["DO_NewGameState"] &&
+			old.NewGameState != current.NewGameState)
 		{
-			debugText += "\n┃NewMainState: " + old.NewMainState.ToString() +
-				" → " + current.NewMainState.ToString();
+			debugText += "\n┃NewGameState: " + old.NewGameState.ToString() +
+				" → " + current.NewGameState.ToString();
 		}
 		
-		// IsNewMainStateValid changes
+		// IsNewGameStateValid changes
 		// FIXME: temporarily only for OG, cos i dont know the hd address yet
-		if (settings["DO_IsNewMainStateValid"] && vars.era == "OG" &&
-			old.IsNewMainStateValid != current.IsNewMainStateValid)
+		if (settings["DO_IsNewGameStateValid"] && vars.era == "OG" &&
+			old.IsNewGameStateValid != current.IsNewGameStateValid)
 		{
-			debugText += "\n┃IsNewMainStateValid: " + old.IsNewMainStateValid.ToString() +
-				" → " + current.IsNewMainStateValid.ToString();
+			debugText += "\n┃IsNewGameStateValid: " + old.IsNewGameStateValid.ToString() +
+				" → " + current.IsNewGameStateValid.ToString();
 		}
 
 		// FadeFinished changes
@@ -890,10 +889,10 @@ start {
 		switch ((string)vars.era)
 		{
 			case "OG":
-				// When main state is in transition from new game save slot screen -> running
-				if (current.MainState == vars.MainState_NGSaveSlot &&
-					current.IsNewMainStateValid != 0 &&
-					current.NewMainState == vars.MainState_Running)
+				// When GameState is in transition from new game save slot screen -> GS_GAME
+				if (current.GameState == vars.MainState_NGSaveSlot &&
+					current.IsNewGameStateValid != 0 &&
+					current.NewGameState == vars.GS_GAME)
 				{
 					return true;
 				}
@@ -903,16 +902,16 @@ start {
 				// MainState_NGSaveSlot doesn't exist in HD
 				// (because the new game / load game screens were merged with the main menu)
 				// So instead, we can check if the new game cutscene is being loaded
-				if (current.MainState == vars.MainState_MainMenu &&
-					// current.IsNewMainStateValid != 0 &&
-					current.NewMainState == vars.MainState_Running &&
+				if (current.GameState == vars.GS_TITLE &&
+					// current.IsNewGameStateValid != 0 &&
+					current.NewGameState == vars.GS_GAME &&
 					vars.NewWAD(current).ID == "t1i1m002")
 				{
 					return true;
 				}
 				break;
 
-				// Have yet to find the HD address for IsNewMainStateValid. Would be nice to include it in the logic here to be safe (because, yeah, sometimes NewMainState gets stuck on invalid values while on the main menu). However, we seem fine without it.
+				// Have yet to find the HD address for IsNewGameStateValid. Would be nice to include it in the logic here to be safe (because, yeah, sometimes NewGameState gets stuck on invalid values while on the main menu). However, we seem fine without it.
 
 			default:
 				return false;
@@ -921,7 +920,7 @@ start {
 
 	// The following start condition checks assume the game is running
 	// and the current map is an ingame tribe and not a cutscene
-	if (current.MainState != vars.MainState_Running ||
+	if (current.GameState != vars.GS_GAME ||
 		current.CurTribe < 1 || current.CurTribe > 5 || current.CurType == 3)
 	{
 		return false;
@@ -1011,9 +1010,9 @@ split {
 		return true;
 	}
 	
-	// Cancel if main state is not "running" or
+	// Cancel if GameState is not GS_GAME or
 	// current tribe is not an ingame tribe
-	if (current.MainState != vars.MainState_Running ||
+	if (current.GameState != vars.GS_GAME ||
 		current.CurTribe < 1 || current.CurTribe > 5)
 	{
 		((IDictionary<string, object>)current).Remove("ProgressList");
@@ -1233,7 +1232,7 @@ isLoading {
 		case "OG": return
 			// NOTE: for the time being, we are pickling OG load removal code as-is. See:
 			// https://discord.com/channels/313375426112389123/408694062862958592/1569129837946339411
-			current.MainState == vars.MainState_Running && (
+			current.GameState == vars.GS_GAME && (
 			current.GameOver == vars.GO_DOOR || current.GameOver == vars.GO_NEWLEVEL ||
 			!current.IsMapLoaded);
 
@@ -1266,7 +1265,7 @@ isLoading {
 			(current.GameOver == vars.GO_CONTINUE && !vars.IsThisMap(current, 0, 0, 2, 3)) ||
 
 			// Transitioning out of the GO wad when selecting "No"
-			(current.NewMainState == vars.MainState_MainMenu && vars.IsThisMap(current, 0, 0, 2, 3));
+			(current.NewGameState == vars.GS_TITLE && vars.IsThisMap(current, 0, 0, 2, 3));
 
 			// For Game Over timing, reference:
 			// https://docs.google.com/spreadsheets/d/1qO8OKwC2lO5xLHyy5YCDRCFqPmfvvvpsyPnEzInGkjg/edit?usp=sharing
