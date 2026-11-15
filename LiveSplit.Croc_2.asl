@@ -13,6 +13,7 @@ state("Croc2", "US") {
 	int NewGameState        : 0xB7930;
 	int IsNewGameStateValid : 0xB7934;
 	int GameState           : 0xB793C; // AKA MainState
+	uint GameFrame          : 0xB7EAC;
 	int Inputs              : 0x12A590;
 	int GemCounter          : 0x12AECC;
 	int GobboCounter        : 0x12AEE0;
@@ -35,6 +36,7 @@ state("Croc2", "EU") {
 	int NewGameState        : 0xBEB20;
 	int IsNewGameStateValid : 0xBEB24;
 	int GameState           : 0xBEB2C;
+	uint GameFrame          : 0xBF09C;
 	int Inputs              : 0x131780;
 	int GemCounter          : 0x1320BC;
 	int GobboCounter        : 0x1320D0;
@@ -49,6 +51,7 @@ state("croc2", "HD-STEAM")
 	int CrocX               : 0xBC7CE8, 0x4C;
 	int CrocY               : 0xBC7CE8, 0x50;
 	int CrocZ               : 0xBC7CE8, 0x54;
+	uint GameFrame          : 0xBC86FC;
 	int CurTribe            : 0xBC87D4;
 	int CurLevel            : 0xBC87D8;
 	int CurMap              : 0xBC87DC;
@@ -87,6 +90,10 @@ state("croc2", "HD-STEAM")
 }
 
 startup {
+	// For the time being, we are pickling OG load removal code as-is. See:
+	// https://discord.com/channels/313375426112389123/408694062862958592/1569319116995559437
+	vars.USE_OLD_LRT_FOR_OG = true;
+
 	// Start
 	settings.Add("RequireUnusedBossWarps", true,
 		"Do not start if any boss warp has already been used");
@@ -361,6 +368,12 @@ startup {
 	vars.NewWAD = new Func<dynamic, dynamic>(state => GenerateWAD(
 		state.NewTribe, state.NewLevel, state.NewMap, state.NewType));
 
+	// Returns IGT
+	vars.getGameTime = new Func<uint, uint, string, TimeSpan>((GameFrame, StartFrame, era) =>
+		new TimeSpan((GameFrame - StartFrame) *
+			TimeSpan.TicksPerSecond / (era == "HD" ? 60 : 30))
+	);
+
 	// Define GameOver constants (found inside the HD croc2.exe)
 	vars.GO_NORMAL        = 0;
 	vars.GO_CONTINUE      = 1;
@@ -380,7 +393,10 @@ init {
 	int addrScriptMgr;
 
 	// Detect game version
-	// FIXME: SURELY there is a way to remove the redundant vars.AddrCurWAD definitions? (the same addresses are defined up top as state variables)
+	// FIXME: SURELY there is a way to remove the redundant vars.AddrCurWAD definitions?
+	//        (the same addresses are defined up top as state variables)
+	//        Could maybe switch to a MemoryWatcherList like hdc0 uses here:
+	//        https://discord.com/channels/313375426112389123/408694062862958592/1571366821070766250
 	switch (firstModule.ModuleMemorySize)
 	{
 		case 0x23A000:
@@ -558,7 +574,7 @@ update {
 	{
 		print("★★★★ RACE CONDITION DETECTED ★★★★\n\n  " +
 			vars.CurWAD(old).ID       + " - old.CurWAD\n  " + 
-			vars.CurWAD(current).ID   + " - current.CurWAD\n  " + 
+			vars.CurWAD(current).ID   + " - current.CurWAD (INVALID!)\n  " + 
 			currentPlusAlphaCurWAD.ID + " - currentPlusAlphaCurWAD\n\n" +
 			"OVERWRITING current.CurWAD\n" +
 			"WITH currentPlusAlphaCurWAD\n" +
@@ -631,6 +647,8 @@ update {
 		vars.AddrSaveSlot = vars.AddrSaveSlots + (current.CurSaveSlotIdx * SaveSlotSize);
 		
 		// Update PrevTribeSSX
+		// FIXME: verify this works properly on EU.
+		//        I was doing some brief testing on EU, and I saw a couple instances where PrevTribeSSX was spamming changes erratically on map change
 		const int offsetPrevTribeSSX = 0x2B4;
 		var addrPrevTribeSSX = vars.AddrSaveSlot + offsetPrevTribeSSX;
 		current.PrevTribeSSX = memory.ReadValue<int>((IntPtr)addrPrevTribeSSX);
@@ -788,8 +806,6 @@ update {
 			debugText += "\n┃FadeFinished: " + old.FadeFinished.ToString() +
 				" → " + current.FadeFinished.ToString();
 		}
-		if (current.FadeFinished == 1 && current.GameOver != vars.GO_NORMAL)
-			print("★★★ IS THIS LIVESPLIT CYCLE A LOAD?? ★★★");
 		
 		// GameOver changes
 		if (settings["DO_GameOver"] &&
@@ -839,31 +855,36 @@ update {
 			if (/*FIXME: put a setting here*/true)
 			{
 				var RTA = timer.CurrentTime.RealTime;
-				if (RTA != TimeSpan.Zero)
+				if (RTA == TimeSpan.Zero)
 				{
-					// NOTE: IGT is null when you first boot up livesplit
-					var IGT = timer.CurrentTime.GameTime;
+					debugText = "\n┃     [ TIMER IS RESET ]" + debugText;
+				}
+				else
+				{
+					// NOTE: `Update` block runs before `gameTime` block.
+					//       So if we simply grab timer.CurrentTime.GameTime here,
+					//       we will get the outdated value from the last livesplit cycle.
+					var IGT = vars.getGameTime(current.GameFrame, vars.StartFrame, vars.era);
 					var diff = RTA - IGT;
 
 					debugText =
 						"\n┃RTA: " + string.Format("{0:h\\:mm\\:ss\\.fff}", RTA) +
-						 " ┃ Loads removed:" +
+						 " ┃Loads: "  + string.Format("{0:h\\:mm\\:ss\\.fff}", diff) +
 						"\n┃IGT: " + string.Format("{0:h\\:mm\\:ss\\.fff}", IGT) +
-						 " ┃ " + string.Format("{0:h\\:mm\\:ss\\.fff}", diff) +
+						 " ┃GameFrame: " + (current.GameFrame - vars.StartFrame).ToString("N0") +
 						debugText;
-				}
-				else
-				{
-					debugText = "\n┃     [ TIMER IS RESET ]" + debugText;
 				}
 			}
 
-			string horizontalbar = vars.HasCurWADChanged(old, current) ?
+			string TimerWarning = (vars.era == "OG" && vars.USE_OLD_LRT_FOR_OG) ?
+				" (using old LRT instead of IGT)" : "";
+
+			string HorizontalBar = vars.HasCurWADChanged(old, current) ?
 				"━━━━━━━━━━━━━━━━━━━━━━━━━━━" : "";
 
-			print("┏━ " + version.ToString() +
+			print("┏━ " + version.ToString() + TimerWarning +
 					debugText +
-				"\n┗━" + horizontalbar);
+				"\n┗━" + HorizontalBar);
 		}
 	}
 	
@@ -1000,6 +1021,11 @@ start {
 	{
 		return true;
 	}
+}
+
+onStart
+{
+	vars.StartFrame = current.GameFrame;
 }
 
 split {
@@ -1227,50 +1253,20 @@ split {
 }
 
 isLoading {
-	switch ((string)vars.era)
-	{
-		case "OG": return
-			// NOTE: for the time being, we are pickling OG load removal code as-is. See:
-			// https://discord.com/channels/313375426112389123/408694062862958592/1569129837946339411
-			current.GameState == vars.GS_GAME && (
-			current.GameOver == vars.GO_DOOR || current.GameOver == vars.GO_NEWLEVEL ||
-			!current.IsMapLoaded);
+	return (vars.era == "OG" && vars.USE_OLD_LRT_FOR_OG) ?
+	(
+		current.GameState == vars.GS_GAME && (
+		current.GameOver == vars.GO_DOOR || current.GameOver == vars.GO_NEWLEVEL ||
+		!current.IsMapLoaded)
+	) : true;
+}
 
-		case "HD": return
-			// Main transition between wads
-			// FIXME: are there any other actual variable loads this misses? perhaps on `GO_DOOR` or `GO_RESETLEVEL` transition?
-			current.CurrentMap == 0 || 
+gameTime
+{
+	return (vars.era == "OG" && vars.USE_OLD_LRT_FOR_OG) ? null :
+		vars.getGameTime(current.GameFrame, vars.StartFrame, vars.era);
 
-			// FIXME: is this even a load???
-			// FIXME: this breaks on GO. probably on credits too. need to add restrictions
-			(current.FadeFinished == 1 && current.GameOver != vars.GO_NORMAL);
-
-		
-		// FIXME: aggressive HD load removal code that we will probably not use. See:
-		// https://discord.com/channels/313375426112389123/408694062862958592/1569341751892771101
-		case "XX": return
-			// Main transition between wads.
-			// This replaces IsMapLoaded from OG.
-			// current.GameOver != vars.GO_CONTINUE is to exclude GO screen, which behaves differently.
-			(vars.IsMapIDChanging(current) && current.GameOver != vars.GO_CONTINUE) ||
-
-			// GameOver transitions
-			current.GameOver == vars.GO_RESETLEVEL || // Death warp
-				// ↑ Could be controversial; please give your thoughts!
-			current.GameOver == vars.GO_DOOR       || // Going through door within wad
-			current.GameOver == vars.GO_NEWLEVEL   || // Transitioning between wads
-			current.GameOver == vars.GO_TITLE      || // Exiting to main menu
-
-			// Transitioning into the GO wad
-			(current.GameOver == vars.GO_CONTINUE && !vars.IsThisMap(current, 0, 0, 2, 3)) ||
-
-			// Transitioning out of the GO wad when selecting "No"
-			(current.NewGameState == vars.GS_TITLE && vars.IsThisMap(current, 0, 0, 2, 3));
-
-			// For Game Over timing, reference:
-			// https://docs.google.com/spreadsheets/d/1qO8OKwC2lO5xLHyy5YCDRCFqPmfvvvpsyPnEzInGkjg/edit?usp=sharing
-
-		default: return
-			false;
-	}
+	// FIXME: known issues with new load removal (getGameTime)
+	// - During a run, if you close and re-open croc 2 (for example if it crashed), GameFrame resets to 0, messing up your IGT. As a potential fix, on game exit you could set `vars.StartFrame -= current.GameFrame`, so when the game boots up again the timer will pick up where you left off. Crashes do happen occasionally, so this is important to consider.
+	// - If livesplit re-loads the autosplitter while the timer is running, vars.StartFrame gets wiped (it is set on timer start), and thus trying to access vars.StartFrame gives an error, and you have to reset the timer. I don't think this will come up during a run, because you generally won't be editing / re-loading the autosplitter during a run. But it is annoying when developing the autosplitter (cos every time you save the asl file, the timer crashes and must be reset lol)
 }
