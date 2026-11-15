@@ -91,97 +91,111 @@ startup {
 	// Start
 	settings.Add("RequireUnusedBossWarps", true,
 		"Do not start if any boss warp has already been used (OG)");
-		settings.SetToolTip("RequireUnusedBossWarps",
-			"FIXME: need to test if they fixed the boss warp bug on HD." + 
-			"\nCurrently this setting is disabled for HD.");
+	settings.SetToolTip("RequireUnusedBossWarps",
+		"FIXME: need to test if they fixed the boss warp bug on HD." + 
+		"\nCurrently this setting is disabled for HD.");
+
 	settings.Add("SaveSlotStart", true,
 		"Save slot start");
-		settings.SetToolTip("SaveSlotStart",
-			"Starts timer on creating a new save file");
+	settings.SetToolTip("SaveSlotStart",
+		"Starts timer on creating a new save file");
+
 	settings.Add("InputStart", false,
 		"Start on any input (not yet supported on HD)");
-		settings.SetToolTip("InputStart",
-			"Useful for testing / timing things");
+	settings.SetToolTip("InputStart",
+		"Useful for testing / timing things");
+
 	settings.Add("ILstart", false,
 		"IL start");
-		settings.SetToolTip("ILstart",
-			"Starts timer on map change when you enter a level");
+	settings.SetToolTip("ILstart",
+		"Starts timer on map change when you enter a level");
+
 	settings.Add("OTSstart", false,
 		"OTS start");
-		settings.SetToolTip("OTSstart",
-			"Starts timer on map change when you enter hub" +
-			"\n\n(note: used to record times for the Overworld Times Sheet)" +
-			"\n(note: secret is currently disabled, as its OTS isn't set up yet)");
-		settings.Add("OTSstart_SMP", false,
-			"Also start on SMP entry", "OTSstart");
+	settings.SetToolTip("OTSstart",
+		"Starts timer on map change when you enter hub" +
+		"\n\n(note: used to record times for the Overworld Times Sheet)" +
+		"\n(note: secret is currently disabled, as its OTS isn't set up yet)");
+	settings.Add("OTSstart_SMP", false,
+		"Also start on SMP entry", "OTSstart");
+
 	settings.Add("IWstart", false,
 		"IW start");
-		settings.SetToolTip("IWstart",
-			"Starts timer on map change when you exit SMP to hub" +
-			"\n\n(note: using the cheat menu to warp is equivalent)" +
-			"\n(fun fact: WW, SQ, GOA, (and sometimes DA) are not equivalent;" +
-			"\nthey give a different hub spawn!)");
+	settings.SetToolTip("IWstart",
+		"Starts timer on map change when you exit SMP to hub" +
+		"\n\n(note: using the cheat menu to warp is equivalent)" +
+		"\n(fun fact: WW, SQ, GOA, (and sometimes DA) are not equivalent;" +
+		"\nthey give a different hub spawn!)");
 
 	// Split
 	settings.Add("SplitOnMapChange", true,
 		"IL/OTS end split");
-		settings.SetToolTip("SplitOnMapChange",
-			"Splits timer on any relevant map change to end an IL or OTS run" +
-			"\n\nThis can also be used in fullgame runs, to chain multiple IL and OTS segments together!" +
-			"\n(\"IL style splits\")");
-		settings.Add("SplitOnMapChange_literal", false,
-			"Split on literally any map change", "SplitOnMapChange");
+	settings.SetToolTip("SplitOnMapChange",
+		"Splits timer on any relevant map change to end an IL or OTS run" +
+		"\n\nThis can also be used in fullgame runs, to chain multiple IL and OTS segments together!" +
+		"\n(\"IL style splits\")");
+	settings.Add("SplitOnMapChange_literal", false,
+		"Split on literally any map change", "SplitOnMapChange");
+
 	settings.Add("SplitOnObjectiveCompletion", false,
 		"Split on objective completion");
-		settings.SetToolTip("SplitOnObjectiveCompletion",
-			"(note: you probably want to disable this if doing IL style splits)");
-		settings.Add("SplitOnSMPEntry", false,
-			"IW end split", "SplitOnObjectiveCompletion");
-			settings.SetToolTip("SplitOnSMPEntry",
-				"Splits timer on map change into SMP" +
-				"\n\n(note: this option is redundant if IL/OTS end split is enabled!)");
-		settings.Add("SplitOnGoldenGobbo", false,
-			"100% (require Golden Gobbo)", "SplitOnObjectiveCompletion");
-		settings.Add("SplitOnDanteCrystals", false,
-			"Split on collecting crystals in Dante's World", "SplitOnObjectiveCompletion");
+	settings.SetToolTip("SplitOnObjectiveCompletion",
+		"(note: you probably want to disable this if doing IL style splits)");
+	settings.Add("SplitOnSMPEntry", false,
+		"IW end split", "SplitOnObjectiveCompletion");
+	settings.SetToolTip("SplitOnSMPEntry",
+		"Splits timer on map change into SMP" +
+		"\n\n(note: this option is redundant if IL/OTS end split is enabled!)");
+	settings.Add("SplitOnGoldenGobbo", false,
+		"100% (require Golden Gobbo)", "SplitOnObjectiveCompletion");
+	settings.Add("SplitOnDanteCrystals", false,
+		"Split on collecting crystals in Dante's World", "SplitOnObjectiveCompletion");
+
 	settings.Add("SplitOnGem", false,
 		"Split on collecting gems");
-		settings.SetToolTip("SplitOnGem",
-			"(note: useful for IL runs)");
+	settings.SetToolTip("SplitOnGem",
+		"(note: useful for IL runs)");
+
 	settings.Add("BabiesSubsplits", false,
 		"Babies Subsplits");
-		for (int i = 1; i <= 30; i++)
-		{
-			settings.Add("BabiesSubsplits_" + i.ToString(), false,
+	for (int i = 1; i <= 30; i++)
+	{
+		settings.Add("BabiesSubsplits_" + i.ToString(), false,
 			i.ToString() + " / 30", "BabiesSubsplits");
-		}
+	}
 
 	// Debug
 	settings.Add("DebugOutput", false,
 		"Debug output");
-		settings.SetToolTip("DebugOutput",
+	settings.SetToolTip("DebugOutput",
 		"Prints debug info in Dbgview.exe" +
 		"\n\n(note: allows you to see which changes happened in the same ASL cycle)");
-		settings.Add("DO_MapChanges", true,
+	settings.Add("DO_TimerDetails", true,
+		"Timer details", "DebugOutput");
+	settings.Add("DO_MapChanges", true,
 		"Map changes", "DebugOutput");
-		settings.Add("DO_WADB4GH", true,
+	settings.SetToolTip("DO_MapChanges",
+		"Both CurWAD and NewWAD. NewWAD is currently only supported on HD.");
+	settings.Add("DO_WADB4GH", true,
 		"WADB4GH changes", "DebugOutput");
-		settings.Add("DO_PrevTribeSSX", true,
+	settings.Add("DO_PrevTribeSSX", true,
 		"PrevTribeSSX changes (OG only)", "DebugOutput");
-		settings.Add("DO_GameState", true,
+	settings.Add("DO_GameState", true,
 		"GameState changes", "DebugOutput");
-		settings.Add("DO_NewGameState", true,
+	settings.Add("DO_NewGameState", true,
 		"NewGameState changes", "DebugOutput");
-		settings.Add("DO_IsNewGameStateValid", true,
+	settings.Add("DO_IsNewGameStateValid", true,
 		"IsNewGameStateValid changes (not yet found on HD)", "DebugOutput");
-		settings.Add("DO_GameOver", true,
+	settings.Add("DO_GameOver", true,
 		"GameOver changes", "DebugOutput");
-		settings.Add("DO_IsCheatMenuOpen", true,
+	settings.Add("DO_IsCheatMenuOpen", true,
 		"IsCheatMenuOpen changes", "DebugOutput");
-		settings.Add("DO_AllowReturnToHub", true,
+	settings.Add("DO_AllowReturnToHub", true,
 		"AllowReturnToHub changes (OG only)", "DebugOutput");
-		settings.Add("DO_IsMapLoaded", true,
+	settings.Add("DO_IsMapLoaded", true,
 		"IsMapLoaded changes (OG only)", "DebugOutput");
+	settings.Add("DO_CurrentMap", true,
+		"CurrentMap changes (HD only)", "DebugOutput");
 		
 	settings.Add("SpeedDisplay", false,
 		"Display Croc's speed in a LiveSplit text component");
@@ -621,12 +635,8 @@ update {
 		vars.customStateVarsAreInitialized = true;
 	}
 	
-	// FIXME; temp workaround
-	if (version == "HD-STEAM")
-	{
-		// print("FIXME: skipping updating addrSaveSlot / PrevTribeSSX");
-	}
-	else
+	// OG only updates
+	if (vars.era == "OG")
 	{
 		// Update addrSaveSlot
 		const int SaveSlotSize = 0x2000;
@@ -714,7 +724,6 @@ update {
 		// Only update livesplit element if the text has changed
 		if (current.ObjectiveFlagsText != old.ObjectiveFlagsText)
 		{
-			print("FIXME: TEMP DEBUG. NEW TEXT: " + current.ObjectiveFlagsText);
 			vars.SetTextComponent("Objective Flags", current.ObjectiveFlagsText, true);
 		}
 	}
@@ -735,7 +744,7 @@ update {
 		}
 
 		// NewWAD changes
-		if (/*FIXME: settings[""] &&*/ vars.era == "HD" &&
+		if (settings["DO_MapChanges"] && vars.era == "HD" &&
 			vars.NewWAD(old).ID != vars.NewWAD(current).ID)
 		{
 			debugText +=
@@ -753,8 +762,7 @@ update {
 		}
 		
 		// PrevTribeSSX changes
-		// FIXME: how to handle this for HD? does PrevTribeSSX even exist in HD?
-		if (settings["DO_PrevTribeSSX"] &&
+		if (settings["DO_PrevTribeSSX"] && vars.era == "OG" &&
 			old.PrevTribeSSX != current.PrevTribeSSX)
 		{
 			debugText += "\n┃PrevTribeSSX: " + old.PrevTribeSSX.ToString() +
@@ -819,8 +827,8 @@ update {
 		}
 		
 		// CurrentMap changes
-		// FIXME: if you keep this, add a setting
-		if (vars.era == "HD" && old.CurrentMap != current.CurrentMap)
+		if (settings["DO_CurrentMap"] && vars.era == "HD" &&
+			old.CurrentMap != current.CurrentMap)
 		{
 			debugText += "\n┃CurrentMap: " + old.CurrentMap.ToString("X") +
 				" → " + current.CurrentMap.ToString("X");
@@ -829,8 +837,8 @@ update {
 		// Print output
 		if (debugText != "")
 		{
-			// Timer status
-			if (/*FIXME: put a setting here*/true)
+			// Timer details
+			if (settings["DO_TimerDetails"])
 			{
 				var RTA = timer.CurrentTime.RealTime;
 				if (RTA == TimeSpan.Zero)
