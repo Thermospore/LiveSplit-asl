@@ -6,7 +6,6 @@ state("Croc2", "US") {
 	int CurLevel            : 0xA8C48;
 	int CurMap              : 0xA8C4C;
 	int CurType             : 0xA8C50;
-	int FadeFinished        : 0xB7770;
 	int GameOver            : 0xB7880; // AKA InGameState
 	bool IsCheatMenuOpen    : 0xB788C;
 	bool IsMapLoaded        : 0xB78C4;
@@ -29,7 +28,6 @@ state("Croc2", "EU") {
 	int CurLevel            : 0xA9C48;
 	int CurMap              : 0xA9C4C;
 	int CurType             : 0xA9C50;
-	int FadeFinished        : 0xBE960;
 	int GameOver            : 0xBEA70;
 	bool IsCheatMenuOpen    : 0xBEA7C;
 	bool IsMapLoaded        : 0xBEAB4;
@@ -48,45 +46,41 @@ state("Croc2", "EU") {
 // 		  also classic (both steam and GOG)
 state("croc2", "HD-STEAM")
 {
+	int GameState           : 0xB5D5E8; 
 	int CrocX               : 0xBC7CE8, 0x4C;
 	int CrocY               : 0xBC7CE8, 0x50;
 	int CrocZ               : 0xBC7CE8, 0x54;
 	uint GameFrame          : 0xBC86FC;
+		// OG: counts up by 1 at 30hz 
+		// HD: counts up by 2 at 30hz
 	int CurTribe            : 0xBC87D4;
 	int CurLevel            : 0xBC87D8;
 	int CurMap              : 0xBC87DC;
 	int CurType             : 0xBC87E0;
-	int FadeFinished        : 0xB902D0;
-	int GameOver            : 0xB90D30;
 	bool IsCheatMenuOpen    : 0xB8E0F8;
 		// OG (int):  menu closed = 0, open = 1
-		// HD (int):  menu closed = 0, open = 0xFFFFFFFF (or, -1)
+		// HD (int):  menu closed = 0, open = -1 (0xFFFFFFFF)
 		// Switching this to a bool, so behaviour is the same between OG and HD
-	// IsMapLoaded - couldn't find an HD equivalent; replaced with IsMapIDChanging
-		// FIXME: looks like we will replace it with CurrentMap
+	int GameOver            : 0xB90D30;
 	int NewGameState        : 0xB90D3C;
-	// int IsNewGameStateValid : 0xB7934;
+	// int IsNewGameStateValid : 0x;
 		// FIXME: find this for save slot start, if you can
-	int GameState           : 0xB5D5E8; 
-	// int Inputs              : 0x12A590;
-		// only used for the "Start on any input" option
+	// int Inputs              : 0x;
+		// FIXME: need to find this for HD
 		// browse memory around 0xBC4B54 for some candidates
-	int GemCounter          : 0xBC4DAC;
-	int GobboCounter        : 0xBC4C6C;
-	// int AllowReturnToHub    : 0x12AEFC;
-		// only used for wrong warp detection (which I don't think is even possible in HD?)
-	int CurSaveSlotIdx      : 0xB4D5A8;
-		// FIXME: do we use this for anything in HD? if not, then let's just comment it out
+	long CurrentMap         : 0xB90D70;
+		// This was a candidate for load removal, but is currently unused.
+		// Leaving it in here for the moment; seems useful.
+		// (needs a better name tho; this will get mixed up with CurMap)
 	int NewTribe            : 0xBA9B04;
 	int NewLevel            : 0xBA9B08;
 	int NewMap              : 0xBA9B0C;
 	int NewType             : 0xBA9B10;
-		// NOTE: GOA screen is an exception; see load removal logic
-		// FIXME: are these present in og?
-		// FIXME: think about if these could be useful for race condition prevention (or for other parts of the autosplitter)
-	long CurrentMap         : 0xB90D70;
-		// FIXME: candidate for use with load removal
-		// FIXME: rename this? will get mixed up with CurMap (as in CurWAD)
+		// NOTE: Watch out for GOA screen; it behaves differently
+		// FIXME: Is NewWAD present in og?
+		//        Also, think about if NewWAD could be useful for race condition prevention (or for other parts of the autosplitter)
+	int GemCounter          : 0xBC4DAC;
+	int GobboCounter        : 0xBC4C6C;
 }
 
 startup {
@@ -96,13 +90,16 @@ startup {
 
 	// Start
 	settings.Add("RequireUnusedBossWarps", true,
-		"Do not start if any boss warp has already been used");
+		"Do not start if any boss warp has already been used (OG)");
+		settings.SetToolTip("RequireUnusedBossWarps",
+			"FIXME: need to test if they fixed the boss warp bug on HD." + 
+			"\nCurrently this setting is disabled for HD.");
 	settings.Add("SaveSlotStart", true,
 		"Save slot start");
 		settings.SetToolTip("SaveSlotStart",
 			"Starts timer on creating a new save file");
 	settings.Add("InputStart", false,
-		"Start on any input");
+		"Start on any input (not yet supported on HD)");
 		settings.SetToolTip("InputStart",
 			"Useful for testing / timing things");
 	settings.Add("ILstart", false,
@@ -170,25 +167,22 @@ startup {
 		settings.Add("DO_WADB4GH", true,
 		"WADB4GH changes", "DebugOutput");
 		settings.Add("DO_PrevTribeSSX", true,
-		"PrevTribeSSX changes", "DebugOutput");
+		"PrevTribeSSX changes (OG only)", "DebugOutput");
 		settings.Add("DO_GameState", true,
 		"GameState changes", "DebugOutput");
 		settings.Add("DO_NewGameState", true,
 		"NewGameState changes", "DebugOutput");
 		settings.Add("DO_IsNewGameStateValid", true,
-		"IsNewGameStateValid changes", "DebugOutput");
+		"IsNewGameStateValid changes (not yet found on HD)", "DebugOutput");
 		settings.Add("DO_GameOver", true,
 		"GameOver changes", "DebugOutput");
 		settings.Add("DO_IsCheatMenuOpen", true,
 		"IsCheatMenuOpen changes", "DebugOutput");
 		settings.Add("DO_AllowReturnToHub", true,
-		"AllowReturnToHub changes", "DebugOutput");
+		"AllowReturnToHub changes (OG only)", "DebugOutput");
 		settings.Add("DO_IsMapLoaded", true,
-		"IsMapLoaded changes", "DebugOutput");
+		"IsMapLoaded changes (OG only)", "DebugOutput");
 		
-	// Speed display
-	// Maybe move this to a Cheat Engine GUI or a separate asl script or something?
-	//      https://wiki.cheatengine.org/index.php?title=Tutorial:LuaFormGUI
 	settings.Add("SpeedDisplay", false,
 		"Display Croc's speed in a LiveSplit text component");
 		settings.SetToolTip("SpeedDisplay",
@@ -196,7 +190,6 @@ startup {
 		"\n\nnote 2: Croc 2 runs at 30fps. This display catches most but NOT ALL of the frames" +
 		"\n\nnote 3: Unfortunately, when Croc isn't moving the display just holds the last non-zero value");
 
-	// Objective flags display
 	settings.Add("ObjectiveFlagsDisplay", false,
 		"Display objective flags in a LiveSplit text component");
 
@@ -225,11 +218,6 @@ startup {
 	vars.HasCurWADChanged = new Func<dynamic, dynamic, bool>((state1, state2) =>
 		state1.CurTribe != state2.CurTribe || state1.CurLevel != state2.CurLevel ||
 		state1.CurMap != state2.CurMap || state1.CurType != state2.CurType);
-
-	// Returns true iff NewWAD != CurWAD
-	vars.IsMapIDChanging = new Func<dynamic, bool>((state) =>
-		state.NewTribe != state.CurTribe || state.NewLevel != state.CurLevel ||
-		state.NewMap != state.CurMap || state.NewType != state.CurType);
 
 	vars.AllDFCrystalsJustPlaced = new Func<Process, dynamic, bool>((Memory, Vars) =>
 	{
@@ -426,16 +414,14 @@ init {
 		case 0xC80000:
 			version = "HD-STEAM";
 			vars.era = "HD";
-			vars.AddrCurTribe       = baseAddr + 0xBC87D4;
-			vars.AddrCurLevel       = baseAddr + 0xBC87D8;
-			vars.AddrCurMap         = baseAddr + 0xBC87DC;
-			vars.AddrCurType        = baseAddr + 0xBC87E0;
 			vars.AddrSaveSlot       = baseAddr + 0xBA9878;
 				// Your save data seems to be stored here; it gets saved to:
 				// `\AppData\Roaming\Croc 2\saves\76561198041092660\game_X.sav`
 				// where X is replaced with the save slot #
-			// vars.AddrUsedBossWarps  = baseAddr + 0x222D50;
-				// FIXME: surely this bug is fixed in HD?
+			vars.AddrCurTribe       = baseAddr + 0xBC87D4;
+			vars.AddrCurLevel       = baseAddr + 0xBC87D8;
+			vars.AddrCurMap         = baseAddr + 0xBC87DC;
+			vars.AddrCurType        = baseAddr + 0xBC87E0;
 			vars.PtrToFirstStrat = new DeepPointer(baseAddr + 0xBC7D20, 0);
 			break;
 
@@ -508,8 +494,8 @@ init {
 	// Initialize variable for speed display
 	vars.curMS = 0;
 	
-	// Set flag for initialization of custom current. variables (see comments there for info)
-	vars.customCurrentVarsAreInitialized = false;
+	// Set flag for initialization of custom state variables (see comments there for info)
+	vars.customStateVarsAreInitialized = false;
 }
 
 update {
@@ -613,12 +599,12 @@ update {
 	//
 	// ==== (end race condition detection + correction) ====
 	
-	// Initialization of custom current. variables
+	// Initialization of custom state variables
 	//
 	// Unfortunately this can't simply be initialized in `startup` or `init`,
 	// because when livesplit detects the EU version, the old/current variables get wiped.
 	// FIXME: ↑ give this another shot
-	if (!vars.customCurrentVarsAreInitialized)
+	if (!vars.customStateVarsAreInitialized)
 	{
 		// Initialize PrevTribeSSX
 		// Currently it's just used for detecting wrong warps
@@ -632,7 +618,7 @@ update {
 		current.WADB4GH = vars.GenerateWAD(
 			vars.NULL_VAL, vars.NULL_VAL, vars.NULL_VAL, vars.NULL_VAL);
 		
-		vars.customCurrentVarsAreInitialized = true;
+		vars.customStateVarsAreInitialized = true;
 	}
 	
 	// FIXME; temp workaround
@@ -668,6 +654,8 @@ update {
 	}
 	
 	// Speed display
+	// Maybe move this to a Cheat Engine GUI or a separate asl script or something?
+	//      https://wiki.cheatengine.org/index.php?title=Tutorial:LuaFormGUI
 	if (settings["SpeedDisplay"])
 	{
 		// Calculate number of in game frames since the last livesplit cycle
@@ -790,7 +778,7 @@ update {
 		}
 		
 		// IsNewGameStateValid changes
-		// FIXME: temporarily only for OG, cos i dont know the hd address yet
+		// FIXME: enable this for HD, if you can find it. update the settings text too.
 		if (settings["DO_IsNewGameStateValid"] && vars.era == "OG" &&
 			old.IsNewGameStateValid != current.IsNewGameStateValid)
 		{
@@ -798,15 +786,6 @@ update {
 				" → " + current.IsNewGameStateValid.ToString();
 		}
 
-		// FadeFinished changes
-		// FIXME: add a setting if you end up using this
-		if (/*settings[""] &&*/
-			old.FadeFinished != current.FadeFinished)
-		{
-			debugText += "\n┃FadeFinished: " + old.FadeFinished.ToString() +
-				" → " + current.FadeFinished.ToString();
-		}
-		
 		// GameOver changes
 		if (settings["DO_GameOver"] &&
 			old.GameOver != current.GameOver)
@@ -824,8 +803,7 @@ update {
 		}
 		
 		// AllowReturnToHub changes
-		if (settings["DO_AllowReturnToHub"] &&
-			vars.era == "OG" && // FIXME: how to handle this option for HD?
+		if (settings["DO_AllowReturnToHub"] && vars.era == "OG" &&
 			old.AllowReturnToHub != current.AllowReturnToHub)
 		{
 			debugText += "\n┃AllowReturnToHub: " + old.AllowReturnToHub.ToString() +
@@ -896,9 +874,7 @@ start {
 	((IDictionary<string, object>)current).Remove("ProgressList");
 
 	// Do not start timer if any boss warp has already been used
-	// FIXME: I'm ASSUMING this is fixed in HD. and if so, can we hide this from the autosplitter settings menu?
-	if (vars.era == "OG" &&
-		settings["RequireUnusedBossWarps"] &&
+	if (settings["RequireUnusedBossWarps"] && vars.era == "OG" &&
 		memory.ReadValue<int>((IntPtr)vars.AddrUsedBossWarps) != 0)
 	{
 		return false;
