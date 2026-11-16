@@ -1253,4 +1253,5 @@ gameTime
 	// FIXME: known issues with new load removal (getGameTime)
 	// - During a run, if you close and re-open croc 2 (for example if it crashed), GameFrame resets to 0, messing up your IGT. As a potential fix, on game exit you could set `vars.StartFrame -= current.GameFrame`, so when the game boots up again the timer will pick up where you left off. Crashes do happen occasionally, so this is important to consider.
 	// - If livesplit re-loads the autosplitter while the timer is running, vars.StartFrame gets wiped (it is set on timer start), and thus trying to access vars.StartFrame gives an error, and you have to reset the timer. I don't think this will come up during a run, because you generally won't be editing / re-loading the autosplitter during a run. But it is annoying when developing the autosplitter (cos every time you save the asl file, the timer crashes and must be reset lol)
+	// - On OG, if the game window is inactive (ex if you alt tab away, or if you are using DXWnd and focus another window) then GameFrame freezes and thus the timer stops. GameFrame also freezes on HD while you drag the window around
 }
