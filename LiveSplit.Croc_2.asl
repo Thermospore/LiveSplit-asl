@@ -440,6 +440,11 @@ init {
 			break;
 
 		default:
+			vars.UnknownVersionErrorString =
+				"★ AUTOSPLITTER ERROR:\n" +
+				"★ UNKNOWN CROC 2 VERSION\n" +
+				"★ firstModule.ModuleMemorySize: 0x" +
+				firstModule.ModuleMemorySize.ToString("X");
 			return;
 	}
 
@@ -513,6 +518,12 @@ init {
 }
 
 update {
+	if (version == "")
+	{
+		print(vars.UnknownVersionErrorString);
+		return false;
+	}
+
 	// ==== Race condition detection + correction ====
 	//
 	// This is done first thing in the cycle, to prevent corrupt map IDs from leaking in
@@ -874,7 +885,7 @@ update {
 		}
 	}
 	
-	return version != "";
+	return true;
 }
 
 start {
