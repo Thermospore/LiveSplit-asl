@@ -1,3 +1,4 @@
+// FIXME: check if classic works (both steam and GOG)
 state("Croc2", "US") {
 	int CrocX               : 0xA8C3C, 0x14, 0x28, 0x2c;
 	int CrocY               : 0xA8C3C, 0x14, 0x28, 0x30;
@@ -42,8 +43,6 @@ state("Croc2", "EU") {
 	int CurSaveSlotIdx      : 0x2292EC;
 }
 
-// FIXME: also need to try HD GOG
-// 		  also classic (both steam and GOG)
 state("croc2", "HD-STEAM")
 {
 	int GameState           : 0xB5D5E8; 
@@ -82,6 +81,33 @@ state("croc2", "HD-STEAM")
 	int GemCounter          : 0xBC4DAC;
 	int GobboCounter        : 0xBC4C6C;
 }
+
+// GameState address is -0x3000; the rest are -0x2D00 (relative to Steam)
+state("croc2", "HD-GOG")
+{
+	int GameState           : 0xB5A5E8;
+	int CrocX               : 0xBC4FE8, 0x4C;
+	int CrocY               : 0xBC4FE8, 0x50;
+	int CrocZ               : 0xBC4FE8, 0x54;
+	uint GameFrame          : 0xBC59FC;
+	int CurTribe            : 0xBC5AD4;
+	int CurLevel            : 0xBC5AD8;
+	int CurMap              : 0xBC5ADC;
+	int CurType             : 0xBC5AE0;
+	bool IsCheatMenuOpen    : 0xB8B3F8;
+	int GameOver            : 0xB8E030;
+	int NewGameState        : 0xB8E03C;
+	long CurrentMap         : 0xB8E070;
+	int NewTribe            : 0xBA6E04;
+	int NewLevel            : 0xBA6E08;
+	int NewMap              : 0xBA6E0C;
+	int NewType             : 0xBA6E10;
+	int GemCounter          : 0xBC20AC;
+	int GobboCounter        : 0xBC1F6C;
+}
+// FIXME: state variables are getting quite lengthy...
+// consider switching to a MemoryWatcherList to save space:
+// https://discord.com/channels/313375426112389123/408694062862958592/1571366821070766250
 
 startup {
 	// For the time being, we are pickling OG load removal code as-is. See:
@@ -437,6 +463,17 @@ init {
 			vars.AddrCurMap         = baseAddr + 0xBC87DC;
 			vars.AddrCurType        = baseAddr + 0xBC87E0;
 			vars.PtrToFirstStrat = new DeepPointer(baseAddr + 0xBC7D20, 0);
+			break;
+
+		case 0xC43000:
+			version = "HD-GOG";
+			vars.era = "HD";
+			vars.AddrSaveSlot       = baseAddr + 0xBA6B78;
+			vars.AddrCurTribe       = baseAddr + 0xBC5AD4;
+			vars.AddrCurLevel       = baseAddr + 0xBC5AD8;
+			vars.AddrCurMap         = baseAddr + 0xBC5ADC;
+			vars.AddrCurType        = baseAddr + 0xBC5AE0;
+			vars.PtrToFirstStrat = new DeepPointer(baseAddr + 0xBC5020, 0);
 			break;
 
 		default:
