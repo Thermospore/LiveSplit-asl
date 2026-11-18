@@ -824,17 +824,6 @@ update {
 				" → " + current.PrevTribeSSX.ToString();
 		}
 		
-		// GameState changes
-		if (settings["DO_GameState"] &&
-			old.GameState != current.GameState)
-		{
-			debugText +=
-				"\n┃GameState: " + vars.GetGameStateSymbol(old.GameState, vars.IsOG) + 
-				" (" + old.GameState.ToString() + ") →" +
-				"\n┃           " + vars.GetGameStateSymbol(current.GameState, vars.IsOG) + 
-				" (" + current.GameState.ToString() + ")";
-		}
-		
 		// NewGameState changes
 		if (settings["DO_NewGameState"] &&
 			old.NewGameState != current.NewGameState)
@@ -844,6 +833,17 @@ update {
 				" (" + old.NewGameState.ToString() + ") →" +
 				"\n┃              " + vars.GetGameStateSymbol(current.NewGameState, vars.IsOG) + 
 				" (" + current.NewGameState.ToString() + ")";
+		}
+		
+		// GameState changes
+		if (settings["DO_GameState"] &&
+			old.GameState != current.GameState)
+		{
+			debugText +=
+				"\n┃GameState: " + vars.GetGameStateSymbol(old.GameState, vars.IsOG) + 
+				" (" + old.GameState.ToString() + ") →" +
+				"\n┃           " + vars.GetGameStateSymbol(current.GameState, vars.IsOG) + 
+				" (" + current.GameState.ToString() + ")";
 		}
 		
 		// IsNewGameStateValid changes
