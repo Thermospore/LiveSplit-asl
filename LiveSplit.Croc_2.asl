@@ -395,9 +395,9 @@ startup {
 		state.NewTribe, state.NewLevel, state.NewMap, state.NewType));
 
 	// Returns IGT
-	vars.getGameTime = new Func<uint, uint, string, TimeSpan>((GameFrame, StartFrame, era) =>
+	vars.getGameTime = new Func<uint, uint, bool, TimeSpan>((GameFrame, StartFrame, IsOG) =>
 		new TimeSpan((GameFrame - StartFrame) *
-			TimeSpan.TicksPerSecond / (era == "HD" ? 60 : 30))
+			TimeSpan.TicksPerSecond / (IsOG ? 30 : 60))
 	);
 
 	// Define GameOver constants (found inside the HD croc2.exe)
@@ -454,10 +454,10 @@ startup {
 	vars.GameStateMappings = mappings;
 
 	// Given an int GameState, returns its symbol as a string
-	vars.GetGameStateSymbol = new Func<int, string, string>((GameState, era) => {
+	vars.GetGameStateSymbol = new Func<int, bool, string>((GameState, IsOG) => {
 		foreach (dynamic mapping in mappings)
 		{
-			int? v = (era == "HD") ? mapping.HD : mapping.OG;
+			int? v = IsOG ? mapping.OG : mapping.HD;
 			if (v.HasValue && v.Value == GameState)
 			{
 				return mapping.Name;
@@ -480,7 +480,8 @@ init {
 	{
 		case 0x23A000:
 			version = "OG-US";
-			vars.era = "OG";
+			vars.IsOG = true;
+
 			vars.AddrCurTribe        = baseAddr +  0xA8C44;
 			vars.AddrCurLevel        = baseAddr +  0xA8C48;
 			vars.AddrCurMap          = baseAddr +  0xA8C4C;
@@ -493,7 +494,8 @@ init {
 		case 0x242000: // 2000 original + 2026 classic (GOG)
 		case 0x271000: // 2026 classic (Steam)
 			version = "OG-EU";
-			vars.era = "OG";
+			vars.IsOG = true;
+
 			vars.AddrCurTribe        = baseAddr +  0xA9C44;
 			vars.AddrCurLevel        = baseAddr +  0xA9C48;
 			vars.AddrCurMap          = baseAddr +  0xA9C4C;
@@ -505,7 +507,8 @@ init {
 
 		case 0xC80000:
 			version = "HD-STEAM";
-			vars.era = "HD";
+			vars.IsOG = false;
+
 			vars.AddrSaveSlot = baseAddr + 0xBA9878;
 				// Your save data seems to be stored here; it gets saved to:
 				// `\AppData\Roaming\Croc 2\saves\76561198041092660\game_X.sav`
@@ -519,7 +522,8 @@ init {
 
 		case 0xC43000:
 			version = "HD-GOG";
-			vars.era = "HD";
+			vars.IsOG = false;
+			
 			vars.AddrSaveSlot = baseAddr + 0xBA6B78;
 			vars.AddrCurTribe = baseAddr + 0xBC5AD4;
 			vars.AddrCurLevel = baseAddr + 0xBC5AD8;
@@ -543,7 +547,7 @@ init {
 	// FIXME: compare GameState timing between OG and HD
 	foreach (dynamic mapping in vars.GameStateMappings)
 	{
-		int? stateValue = (vars.era == "HD") ? mapping.HD : mapping.OG;
+		int? stateValue = vars.IsOG ? mapping.OG : mapping.HD;
 		if (stateValue.HasValue)
 			((IDictionary<string, object>)vars)[mapping.Name] = stateValue.Value;
 	}
@@ -553,7 +557,7 @@ init {
 	vars.OffsetOfPtrToNextStrat = game.Is64Bit() ? 0x008 : 0x000;
 
 	// Set constant for indexing into progress list
-	vars.ProgressListOffset = (vars.era == "HD") ? 0x30C : 0x2d0;
+	vars.ProgressListOffset = vars.IsOG ? 0x2d0 : 0x30C;
 
 	// Initialize variable for speed display
 	vars.curMS = 0;
@@ -692,7 +696,7 @@ update {
 	}
 	
 	// OG only updates
-	if (vars.era == "OG")
+	if (vars.IsOG)
 	{
 		// Update addrSaveSlot
 		const int SaveSlotSize = 0x2000;
@@ -798,7 +802,7 @@ update {
 		}
 
 		// NewWAD changes
-		if (settings["DO_MapChanges"] && vars.era == "HD" &&
+		if (settings["DO_MapChanges"] && !vars.IsOG &&
 			vars.NewWAD(old).ID != vars.NewWAD(current).ID)
 		{
 			debugText +=
@@ -816,7 +820,7 @@ update {
 		}
 		
 		// PrevTribeSSX changes
-		if (settings["DO_PrevTribeSSX"] && vars.era == "OG" &&
+		if (settings["DO_PrevTribeSSX"] && vars.IsOG &&
 			old.PrevTribeSSX != current.PrevTribeSSX)
 		{
 			debugText += "\n┃PrevTribeSSX: " + old.PrevTribeSSX.ToString() +
@@ -828,9 +832,9 @@ update {
 			old.GameState != current.GameState)
 		{
 			debugText +=
-				"\n┃GameState: " + vars.GetGameStateSymbol(old.GameState, vars.era) + 
+				"\n┃GameState: " + vars.GetGameStateSymbol(old.GameState, vars.IsOG) + 
 				"(" + old.GameState.ToString() + ") →" +
-				"\n┃           " + vars.GetGameStateSymbol(current.GameState, vars.era) + 
+				"\n┃           " + vars.GetGameStateSymbol(current.GameState, vars.IsOG) + 
 				"(" + current.GameState.ToString() + ")";
 		}
 		
@@ -839,15 +843,15 @@ update {
 			old.NewGameState != current.NewGameState)
 		{
 			debugText +=
-				"\n┃NewGameState: " + vars.GetGameStateSymbol(old.NewGameState, vars.era) + 
+				"\n┃NewGameState: " + vars.GetGameStateSymbol(old.NewGameState, vars.IsOG) + 
 				"(" + old.NewGameState.ToString() + ") →" +
-				"\n┃              " + vars.GetGameStateSymbol(current.NewGameState, vars.era) + 
+				"\n┃              " + vars.GetGameStateSymbol(current.NewGameState, vars.IsOG) + 
 				"(" + current.NewGameState.ToString() + ")";
 		}
 		
 		// IsNewGameStateValid changes
 		// FIXME: enable this for HD, if you can find it. update the settings text too.
-		if (settings["DO_IsNewGameStateValid"] && vars.era == "OG" &&
+		if (settings["DO_IsNewGameStateValid"] && vars.IsOG &&
 			old.IsNewGameStateValid != current.IsNewGameStateValid)
 		{
 			debugText += "\n┃IsNewGameStateValid: " + old.IsNewGameStateValid.ToString() +
@@ -871,7 +875,7 @@ update {
 		}
 		
 		// AllowReturnToHub changes
-		if (settings["DO_AllowReturnToHub"] && vars.era == "OG" &&
+		if (settings["DO_AllowReturnToHub"] && vars.IsOG &&
 			old.AllowReturnToHub != current.AllowReturnToHub)
 		{
 			debugText += "\n┃AllowReturnToHub: " + old.AllowReturnToHub.ToString() +
@@ -879,7 +883,7 @@ update {
 		}
 		
 		// IsMapLoaded changes
-		if (settings["DO_IsMapLoaded"] && vars.era == "OG" &&
+		if (settings["DO_IsMapLoaded"] && vars.IsOG &&
 			old.IsMapLoaded != current.IsMapLoaded)
 		{
 			debugText += "\n┃IsMapLoaded: " + old.IsMapLoaded.ToString() +
@@ -887,7 +891,7 @@ update {
 		}
 		
 		// CurrentMap changes
-		if (settings["DO_CurrentMap"] && vars.era == "HD" &&
+		if (settings["DO_CurrentMap"] && !vars.IsOG &&
 			old.CurrentMap != current.CurrentMap)
 		{
 			debugText += "\n┃CurrentMap: " + old.CurrentMap.ToString("X") +
@@ -910,7 +914,7 @@ update {
 					// NOTE: `Update` block runs before `gameTime` block.
 					//       So if we simply grab timer.CurrentTime.GameTime here,
 					//       we will get the outdated value from the last livesplit cycle.
-					var IGT = vars.getGameTime(current.GameFrame, vars.StartFrame, vars.era);
+					var IGT = vars.getGameTime(current.GameFrame, vars.StartFrame, vars.IsOG);
 					var diff = RTA - IGT;
 
 					debugText =
@@ -922,7 +926,7 @@ update {
 				}
 			}
 
-			string TimerWarning = (vars.era == "OG" && vars.USE_OLD_LRT_FOR_OG) ?
+			string TimerWarning = (vars.IsOG && vars.USE_OLD_LRT_FOR_OG) ?
 				" (using old LRT instead of IGT)" : "";
 
 			string HorizontalBar = vars.HasCurWADChanged(old, current) ?
@@ -942,7 +946,7 @@ start {
 	((IDictionary<string, object>)current).Remove("ProgressList");
 
 	// Do not start timer if any boss warp has already been used
-	if (settings["RequireUnusedBossWarps"] && vars.era == "OG" &&
+	if (settings["RequireUnusedBossWarps"] && vars.IsOG &&
 		memory.ReadValue<int>((IntPtr)vars.AddrIntrosTriggered) != 0)
 	{
 		return false;
@@ -951,35 +955,30 @@ start {
 	// Start on new game
 	if (settings["SaveSlotStart"])
 	{
-		switch ((string)vars.era)
+		if (vars.IsOG)
 		{
-			case "OG":
-				// When GameState is in transition from new game save slot screen -> GS_GAME
-				if (current.GameState == vars.GS_CHOOSENEW &&
-					current.IsNewGameStateValid != 0 &&
-					current.NewGameState == vars.GS_GAME)
-				{
-					return true;
-				}
-				break;
+			// When GameState is in transition from new game save slot screen -> in-game
+			if (current.GameState == vars.GS_CHOOSENEW &&
+				current.IsNewGameStateValid != 0 &&
+				current.NewGameState == vars.GS_GAME)
+			{
+				return true;
+			}
+		}
+		else
+		{
+			// GS_CHOOSENEW doesn't exist in HD
+			// (because the new game / load game screens were merged with the main menu)
+			// So instead, we can check if the new game cutscene is being loaded
+			if (current.GameState == vars.GS_TITLE &&
+				// current.IsNewGameStateValid != 0 &&
+				current.NewGameState == vars.GS_GAME &&
+				vars.NewWAD(current).ID == "t1i1m002")
+			{
+				return true;
+			}
 
-			case "HD":
-				// GS_CHOOSENEW doesn't exist in HD
-				// (because the new game / load game screens were merged with the main menu)
-				// So instead, we can check if the new game cutscene is being loaded
-				if (current.GameState == vars.GS_TITLE &&
-					// current.IsNewGameStateValid != 0 &&
-					current.NewGameState == vars.GS_GAME &&
-					vars.NewWAD(current).ID == "t1i1m002")
-				{
-					return true;
-				}
-				break;
-
-				// Have yet to find the HD address for IsNewGameStateValid. Would be nice to include it in the logic here to be safe (because, yeah, sometimes NewGameState gets stuck on invalid values while on the main menu). However, we seem fine without it.
-
-			default:
-				return false;
+			// Have yet to find the HD address for IsNewGameStateValid. Would be nice to include it in the logic here to be safe (because, yeah, sometimes NewGameState gets stuck on invalid values while on the main menu). However, we seem fine without it.
 		}
 	}
 
@@ -1031,7 +1030,7 @@ start {
 			current.WADB4GH.ID == vars.CurWAD(current).ID
 		) &&
 		// disallow starting on doing a wrong warp (invalid spawn)
-		!(vars.era == "OG" && vars.IsWrongWarp(old, current)))
+		!(vars.IsOG && vars.IsWrongWarp(old, current)))
 	{
 		return true;
 	}
@@ -1146,7 +1145,7 @@ split {
 		) &&
 		// disallow when re-entering for wrong warp
 		// (not relevant for HD, cos you can only WW in OG (afaik...))
-		!(vars.era == "OG" &&(
+		!(vars.IsOG &&(
 			// General case
 			(
 				vars.IsGobboHub(old) && !vars.IsGobboHub(current) &&
@@ -1177,7 +1176,7 @@ split {
 			)
 		)) &&
 		// disallow when doing a wrong warp (invalid spawn)
-		!(vars.era == "OG" && vars.IsWrongWarp(old, current)))
+		!(vars.IsOG && vars.IsWrongWarp(old, current)))
 	{		
 		return true;
 	}
@@ -1296,7 +1295,7 @@ split {
 }
 
 isLoading {
-	return (vars.era == "OG" && vars.USE_OLD_LRT_FOR_OG) ?
+	return (vars.IsOG && vars.USE_OLD_LRT_FOR_OG) ?
 	(
 		current.GameState == vars.GS_GAME && (
 		current.GameOver == vars.GO_DOOR || current.GameOver == vars.GO_NEWLEVEL ||
@@ -1306,8 +1305,8 @@ isLoading {
 
 gameTime
 {
-	return (vars.era == "OG" && vars.USE_OLD_LRT_FOR_OG) ? null :
-		vars.getGameTime(current.GameFrame, vars.StartFrame, vars.era);
+	return (vars.IsOG && vars.USE_OLD_LRT_FOR_OG) ? null :
+		vars.getGameTime(current.GameFrame, vars.StartFrame, vars.IsOG);
 
 	// FIXME: known issues with new load removal (getGameTime)
 	// - During a run, if you close and re-open croc 2 (for example if it crashed), GameFrame resets to 0, messing up your IGT. As a potential fix, on game exit you could set `vars.StartFrame -= current.GameFrame`, so when the game boots up again the timer will pick up where you left off. Crashes do happen occasionally, so this is important to consider.
