@@ -548,12 +548,12 @@ init {
 		((IDictionary<string, object>)vars)[mapping.Name] = gamestate;
 	}
 
-	// Set constants for dante yellow crystal detection
-	vars.OffsetOfStratPCField = game.Is64Bit() ? 0x000 : 0x00C;
-	vars.OffsetOfPtrToNextStrat = game.Is64Bit() ? 0x008 : 0x000;
-
 	// Set constant for indexing into progress list
 	vars.ProgressListOffset = vars.IsOG ? 0x2d0 : 0x30C;
+
+	// Set constants for dante yellow crystal detection
+	vars.OffsetOfStratPCField   = vars.IsOG ? 0x00C : 0x000;
+	vars.OffsetOfPtrToNextStrat = vars.IsOG ? 0x000 : 0x008;
 
 	// Initialize variable for speed display
 	vars.curMS = 0;
