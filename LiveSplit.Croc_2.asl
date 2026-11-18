@@ -418,7 +418,6 @@ startup {
 init {
 	var firstModule = modules.First();
 	var baseAddr = firstModule.BaseAddress;
-	int addrScriptMgr;
 
 	// Detect game version
 	// FIXME: SURELY there is a way to remove the redundant vars.AddrCurWAD definitions?
