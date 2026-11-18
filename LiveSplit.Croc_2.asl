@@ -1,4 +1,3 @@
-// FIXME: check if classic works (both steam and GOG)
 state("Croc2", "OG-US") {
 	int CrocX               :  0xA8C3C, 0x14, 0x28, 0x2c;
 	int CrocY               :  0xA8C3C, 0x14, 0x28, 0x30;
@@ -64,9 +63,6 @@ state("croc2", "HD-STEAM")
 	int NewGameState        : 0xB90D3C;
 	// int IsNewGameStateValid : 0x;
 		// FIXME: find this for save slot start, if you can
-	// int Inputs              : 0x;
-		// FIXME: need to find this for HD
-		// browse memory around 0xBC4B54 for some candidates
 	long CurrentMap         : 0xB90D70;
 		// This was a candidate for load removal, but is currently unused.
 		// Leaving it in here for the moment; seems useful.
@@ -78,8 +74,9 @@ state("croc2", "HD-STEAM")
 		// NOTE: Watch out for GOA screen; it behaves differently
 		// FIXME: Is NewWAD present in og?
 		//        Also, think about if NewWAD could be useful for race condition prevention (or for other parts of the autosplitter)
-	int GemCounter          : 0xBC4DAC;
+	int Inputs              : 0xBC4B54;
 	int ExtraCount          : 0xBC4C6C;
+	int GemCounter          : 0xBC4DAC;
 }
 
 // GameState address is -0x3000; the rest are -0x2D00 (relative to Steam)
@@ -102,8 +99,9 @@ state("croc2", "HD-GOG")
 	int NewLevel            : 0xBA6E08;
 	int NewMap              : 0xBA6E0C;
 	int NewType             : 0xBA6E10;
-	int GemCounter          : 0xBC20AC;
+	int Inputs              : 0xBC1E54;
 	int ExtraCount          : 0xBC1F6C;
+	int GemCounter          : 0xBC20AC;
 }
 // FIXME: state variables are getting quite lengthy...
 // consider switching to a MemoryWatcherList to save space:
@@ -127,7 +125,7 @@ startup {
 		"Starts timer on creating a new save file");
 
 	settings.Add("InputStart", false,
-		"Start on any input (not yet supported on HD)");
+		"Start on any input");
 	settings.SetToolTip("InputStart",
 		"Useful for testing / timing things");
 
@@ -980,8 +978,7 @@ start {
 	}
 	
 	// Start on any input
-	// FIXME: get this working on HD
-	if (settings["InputStart"] && vars.era == "OG" &&
+	if (settings["InputStart"] &&
 		current.Inputs != old.Inputs)
 	{
 		return true;
