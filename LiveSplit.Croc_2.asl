@@ -484,9 +484,7 @@ init {
 	}
 
 	// Set era dependent constants
-	// FIXME: compare GameState behaviour with og
-	// - timing of GameState changes, relative to wad ID etc (particularly Running)
-	// - value of GameState in cutscene vs main gameplay vs title screen demos
+	// FIXME: compare GameState timing between OG and HD
 	vars.OffsetOfStratPCField = game.Is64Bit() ? 0x000 : 0x00C;
 	vars.OffsetOfPtrToNextStrat = game.Is64Bit() ? 0x008 : 0x000;
 	switch ((string)vars.era)
@@ -689,8 +687,6 @@ update {
 		vars.AddrSaveSlot = vars.AddrSaveSlots + (current.CurSaveSlotIdx * SaveSlotSize);
 		
 		// Update PrevTribeSSX
-		// FIXME: verify this works properly on EU.
-		//        I was doing some brief testing on EU, and I saw a couple instances where PrevTribeSSX was spamming changes erratically on map change
 		const int offsetPrevTribeSSX = 0x2B4;
 		var addrPrevTribeSSX = vars.AddrSaveSlot + offsetPrevTribeSSX;
 		current.PrevTribeSSX = memory.ReadValue<int>((IntPtr)addrPrevTribeSSX);
