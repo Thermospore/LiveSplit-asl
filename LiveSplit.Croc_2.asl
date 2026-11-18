@@ -1,44 +1,44 @@
 // FIXME: check if classic works (both steam and GOG)
 state("Croc2", "OG-US") {
-	int CrocX               : 0xA8C3C, 0x14, 0x28, 0x2c;
-	int CrocY               : 0xA8C3C, 0x14, 0x28, 0x30;
-	int CrocZ               : 0xA8C3C, 0x14, 0x28, 0x34;
-	int CurTribe            : 0xA8C44;
-	int CurLevel            : 0xA8C48;
-	int CurMap              : 0xA8C4C;
-	int CurType             : 0xA8C50;
-	int GameOver            : 0xB7880; // AKA InGameState
-	bool IsCheatMenuOpen    : 0xB788C;
-	bool IsMapLoaded        : 0xB78C4;
-	int NewGameState        : 0xB7930;
-	int IsNewGameStateValid : 0xB7934;
-	int GameState           : 0xB793C; // AKA MainState
-	uint GameFrame          : 0xB7EAC;
+	int CrocX               :  0xA8C3C, 0x14, 0x28, 0x2c;
+	int CrocY               :  0xA8C3C, 0x14, 0x28, 0x30;
+	int CrocZ               :  0xA8C3C, 0x14, 0x28, 0x34;
+	int CurTribe            :  0xA8C44;
+	int CurLevel            :  0xA8C48;
+	int CurMap              :  0xA8C4C;
+	int CurType             :  0xA8C50;
+	int GameOver            :  0xB7880; // AKA InGameState
+	bool DebugMode          :  0xB788C; // AKA IsCheatMenuOpen
+	bool IsMapLoaded        :  0xB78C4;
+	int NewGameState        :  0xB7930;
+	int IsNewGameStateValid :  0xB7934;
+	int GameState           :  0xB793C; // AKA MainState
+	uint GameFrame          :  0xB7EAC;
 	int Inputs              : 0x12A590;
 	int GemCounter          : 0x12AECC;
-	int GobboCounter        : 0x12AEE0;
+	int ExtraCount          : 0x12AEE0; // AKA GobboCounter
 	int AllowReturnToHub    : 0x12AEFC;
 	int CurSaveSlotIdx      : 0x2220FC;
 }
 
 state("Croc2", "OG-EU") {
-	int CrocX               : 0xA9C3C, 0x14, 0x28, 0x2c;
-	int CrocY               : 0xA9C3C, 0x14, 0x28, 0x30;
-	int CrocZ               : 0xA9C3C, 0x14, 0x28, 0x34;
-	int CurTribe            : 0xA9C44;
-	int CurLevel            : 0xA9C48;
-	int CurMap              : 0xA9C4C;
-	int CurType             : 0xA9C50;
-	int GameOver            : 0xBEA70;
-	bool IsCheatMenuOpen    : 0xBEA7C;
-	bool IsMapLoaded        : 0xBEAB4;
-	int NewGameState        : 0xBEB20;
-	int IsNewGameStateValid : 0xBEB24;
-	int GameState           : 0xBEB2C;
-	uint GameFrame          : 0xBF09C;
+	int CrocX               :  0xA9C3C, 0x14, 0x28, 0x2c;
+	int CrocY               :  0xA9C3C, 0x14, 0x28, 0x30;
+	int CrocZ               :  0xA9C3C, 0x14, 0x28, 0x34;
+	int CurTribe            :  0xA9C44;
+	int CurLevel            :  0xA9C48;
+	int CurMap              :  0xA9C4C;
+	int CurType             :  0xA9C50;
+	int GameOver            :  0xBEA70;
+	bool DebugMode          :  0xBEA7C;
+	bool IsMapLoaded        :  0xBEAB4;
+	int NewGameState        :  0xBEB20;
+	int IsNewGameStateValid :  0xBEB24;
+	int GameState           :  0xBEB2C;
+	uint GameFrame          :  0xBF09C;
 	int Inputs              : 0x131780;
 	int GemCounter          : 0x1320BC;
-	int GobboCounter        : 0x1320D0;
+	int ExtraCount          : 0x1320D0;
 	int AllowReturnToHub    : 0x1320EC;
 	int CurSaveSlotIdx      : 0x2292EC;
 }
@@ -56,7 +56,7 @@ state("croc2", "HD-STEAM")
 	int CurLevel            : 0xBC87D8;
 	int CurMap              : 0xBC87DC;
 	int CurType             : 0xBC87E0;
-	bool IsCheatMenuOpen    : 0xB8E0F8;
+	bool DebugMode          : 0xB8E0F8;
 		// OG (int):  menu closed = 0, open = 1
 		// HD (int):  menu closed = 0, open = -1 (0xFFFFFFFF)
 		// Switching this to a bool, so behaviour is the same between OG and HD
@@ -79,7 +79,7 @@ state("croc2", "HD-STEAM")
 		// FIXME: Is NewWAD present in og?
 		//        Also, think about if NewWAD could be useful for race condition prevention (or for other parts of the autosplitter)
 	int GemCounter          : 0xBC4DAC;
-	int GobboCounter        : 0xBC4C6C;
+	int ExtraCount          : 0xBC4C6C;
 }
 
 // GameState address is -0x3000; the rest are -0x2D00 (relative to Steam)
@@ -94,7 +94,7 @@ state("croc2", "HD-GOG")
 	int CurLevel            : 0xBC5AD8;
 	int CurMap              : 0xBC5ADC;
 	int CurType             : 0xBC5AE0;
-	bool IsCheatMenuOpen    : 0xB8B3F8;
+	bool DebugMode          : 0xB8B3F8;
 	int GameOver            : 0xB8E030;
 	int NewGameState        : 0xB8E03C;
 	long CurrentMap         : 0xB8E070;
@@ -103,7 +103,7 @@ state("croc2", "HD-GOG")
 	int NewMap              : 0xBA6E0C;
 	int NewType             : 0xBA6E10;
 	int GemCounter          : 0xBC20AC;
-	int GobboCounter        : 0xBC1F6C;
+	int ExtraCount          : 0xBC1F6C;
 }
 // FIXME: state variables are getting quite lengthy...
 // consider switching to a MemoryWatcherList to save space:
@@ -214,8 +214,8 @@ startup {
 		"IsNewGameStateValid changes (not yet found on HD)", "DebugOutput");
 	settings.Add("DO_GameOver", true,
 		"GameOver changes", "DebugOutput");
-	settings.Add("DO_IsCheatMenuOpen", true,
-		"IsCheatMenuOpen changes", "DebugOutput");
+	settings.Add("DO_DebugMode", true,
+		"DebugMode changes", "DebugOutput");
 	settings.Add("DO_AllowReturnToHub", true,
 		"AllowReturnToHub changes (OG only)", "DebugOutput");
 	settings.Add("DO_IsMapLoaded", true,
@@ -429,12 +429,12 @@ init {
 		case 0x23A000:
 			version = "OG-US";
 			vars.era = "OG";
-			vars.AddrCurTribe       = baseAddr + 0xA8C44;
-			vars.AddrCurLevel       = baseAddr + 0xA8C48;
-			vars.AddrCurMap         = baseAddr + 0xA8C4C;
-			vars.AddrCurType        = baseAddr + 0xA8C50;
-			vars.AddrSaveSlots      = baseAddr + 0x2040C0;
-			vars.AddrUsedBossWarps  = baseAddr + 0x222D50;
+			vars.AddrCurTribe        = baseAddr +  0xA8C44;
+			vars.AddrCurLevel        = baseAddr +  0xA8C48;
+			vars.AddrCurMap          = baseAddr +  0xA8C4C;
+			vars.AddrCurType         = baseAddr +  0xA8C50;
+			vars.AddrSaveSlots       = baseAddr + 0x2040C0;
+			vars.AddrIntrosTriggered = baseAddr + 0x222D50; // AKA UsedBossWarps
 			vars.PtrToFirstStrat = new DeepPointer(baseAddr + 0xB78BC, 0x20);
 			break;
 
@@ -442,37 +442,37 @@ init {
 		case 0x271000: // 2026 classic (Steam)
 			version = "OG-EU";
 			vars.era = "OG";
-			vars.AddrCurTribe       = baseAddr + 0xA9C44;
-			vars.AddrCurLevel       = baseAddr + 0xA9C48;
-			vars.AddrCurMap         = baseAddr + 0xA9C4C;
-			vars.AddrCurType        = baseAddr + 0xA9C50;
-			vars.AddrSaveSlots      = baseAddr + 0x20B2B0;
-			vars.AddrUsedBossWarps  = baseAddr + 0x229F40;
+			vars.AddrCurTribe        = baseAddr +  0xA9C44;
+			vars.AddrCurLevel        = baseAddr +  0xA9C48;
+			vars.AddrCurMap          = baseAddr +  0xA9C4C;
+			vars.AddrCurType         = baseAddr +  0xA9C50;
+			vars.AddrSaveSlots       = baseAddr + 0x20B2B0;
+			vars.AddrIntrosTriggered = baseAddr + 0x229F40;
 			vars.PtrToFirstStrat = new DeepPointer(baseAddr + 0xBEAAC, 0x20);
 			break;
 
 		case 0xC80000:
 			version = "HD-STEAM";
 			vars.era = "HD";
-			vars.AddrSaveSlot       = baseAddr + 0xBA9878;
+			vars.AddrSaveSlot = baseAddr + 0xBA9878;
 				// Your save data seems to be stored here; it gets saved to:
 				// `\AppData\Roaming\Croc 2\saves\76561198041092660\game_X.sav`
 				// where X is replaced with the save slot #
-			vars.AddrCurTribe       = baseAddr + 0xBC87D4;
-			vars.AddrCurLevel       = baseAddr + 0xBC87D8;
-			vars.AddrCurMap         = baseAddr + 0xBC87DC;
-			vars.AddrCurType        = baseAddr + 0xBC87E0;
+			vars.AddrCurTribe = baseAddr + 0xBC87D4;
+			vars.AddrCurLevel = baseAddr + 0xBC87D8;
+			vars.AddrCurMap   = baseAddr + 0xBC87DC;
+			vars.AddrCurType  = baseAddr + 0xBC87E0;
 			vars.PtrToFirstStrat = new DeepPointer(baseAddr + 0xBC7D20, 0);
 			break;
 
 		case 0xC43000:
 			version = "HD-GOG";
 			vars.era = "HD";
-			vars.AddrSaveSlot       = baseAddr + 0xBA6B78;
-			vars.AddrCurTribe       = baseAddr + 0xBC5AD4;
-			vars.AddrCurLevel       = baseAddr + 0xBC5AD8;
-			vars.AddrCurMap         = baseAddr + 0xBC5ADC;
-			vars.AddrCurType        = baseAddr + 0xBC5AE0;
+			vars.AddrSaveSlot = baseAddr + 0xBA6B78;
+			vars.AddrCurTribe = baseAddr + 0xBC5AD4;
+			vars.AddrCurLevel = baseAddr + 0xBC5AD8;
+			vars.AddrCurMap   = baseAddr + 0xBC5ADC;
+			vars.AddrCurType  = baseAddr + 0xBC5AE0;
 			vars.PtrToFirstStrat = new DeepPointer(baseAddr + 0xBC5020, 0);
 			break;
 
@@ -850,12 +850,12 @@ update {
 				" → " + current.GameOver.ToString();
 		}
 		
-		// IsCheatMenuOpen changes
-		if (settings["DO_IsCheatMenuOpen"] &&
-			old.IsCheatMenuOpen != current.IsCheatMenuOpen)
+		// DebugMode changes
+		if (settings["DO_DebugMode"] &&
+			old.DebugMode != current.DebugMode)
 		{
-			debugText += "\n┃IsCheatMenuOpen: " + old.IsCheatMenuOpen.ToString() +
-				" → " + current.IsCheatMenuOpen.ToString();
+			debugText += "\n┃DebugMode: " + old.DebugMode.ToString() +
+				" → " + current.DebugMode.ToString();
 		}
 		
 		// AllowReturnToHub changes
@@ -931,7 +931,7 @@ start {
 
 	// Do not start timer if any boss warp has already been used
 	if (settings["RequireUnusedBossWarps"] && vars.era == "OG" &&
-		memory.ReadValue<int>((IntPtr)vars.AddrUsedBossWarps) != 0)
+		memory.ReadValue<int>((IntPtr)vars.AddrIntrosTriggered) != 0)
 	{
 		return false;
 	}
@@ -1006,7 +1006,7 @@ start {
 		!vars.IsGobboHub(old) && vars.IsGobboHub(current) &&
 		// disallow starting on cheat menu warp
 		// (technically a valid SMP->__ segment start, but more intrusive than useful)
-		!current.IsCheatMenuOpen &&
+		!current.DebugMode &&
 		// disallow starting after the opening cutscene when you start a new game
 		!vars.IsThisMap(old, 1, 1, 2, 3) &&
 		// disallow starting after loading a save
@@ -1041,7 +1041,7 @@ start {
 			// SMP
 			vars.IsShopMap(old) ||
 			// anywhere, as long as the cheat menu was used
-			old.IsCheatMenuOpen
+			old.DebugMode
 		) &&
 		// now in one of these places
 		(
@@ -1187,8 +1187,8 @@ split {
 	// Babies subsplits
 	if (settings["BabiesSubsplits"] &&
 		vars.IsThisMap(current, 4, 2, 1, 0) &&
-		old.GobboCounter != current.GobboCounter &&
-		settings["BabiesSubsplits_" + current.GobboCounter.ToString()])
+		old.ExtraCount != current.ExtraCount &&
+		settings["BabiesSubsplits_" + current.ExtraCount.ToString()])
 	{
 		return true;
 	}
