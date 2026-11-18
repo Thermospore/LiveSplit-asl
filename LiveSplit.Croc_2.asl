@@ -1,5 +1,5 @@
 // FIXME: check if classic works (both steam and GOG)
-state("Croc2", "US") {
+state("Croc2", "OG-US") {
 	int CrocX               : 0xA8C3C, 0x14, 0x28, 0x2c;
 	int CrocY               : 0xA8C3C, 0x14, 0x28, 0x30;
 	int CrocZ               : 0xA8C3C, 0x14, 0x28, 0x34;
@@ -21,7 +21,7 @@ state("Croc2", "US") {
 	int CurSaveSlotIdx      : 0x2220FC;
 }
 
-state("Croc2", "EU") {
+state("Croc2", "OG-EU") {
 	int CrocX               : 0xA9C3C, 0x14, 0x28, 0x2c;
 	int CrocY               : 0xA9C3C, 0x14, 0x28, 0x30;
 	int CrocZ               : 0xA9C3C, 0x14, 0x28, 0x34;
@@ -428,7 +428,7 @@ init {
 	switch (firstModule.ModuleMemorySize)
 	{
 		case 0x23A000:
-			version = "US";
+			version = "OG-US";
 			vars.era = "OG";
 			vars.AddrCurTribe       = baseAddr + 0xA8C44;
 			vars.AddrCurLevel       = baseAddr + 0xA8C48;
@@ -439,8 +439,9 @@ init {
 			vars.PtrToFirstStrat = new DeepPointer(baseAddr + 0xB78BC, 0x20);
 			break;
 
-		case 0x242000:
-			version = "EU";
+		case 0x242000: // 2000 original + 2026 classic (GOG)
+		case 0x271000: // 2026 classic (Steam)
+			version = "OG-EU";
 			vars.era = "OG";
 			vars.AddrCurTribe       = baseAddr + 0xA9C44;
 			vars.AddrCurLevel       = baseAddr + 0xA9C48;
