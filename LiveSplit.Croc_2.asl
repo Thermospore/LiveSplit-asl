@@ -542,14 +542,10 @@ init {
 	}
 
 	// Set GameState constants
-	// FIXME: check if vars. gets wiped when switching game version.
-	//        otherwise, invalid GS_ constants might be left in vars. when you switch between HD/OG
-	// FIXME: compare GameState timing between OG and HD
 	foreach (dynamic mapping in vars.GameStateMappings)
 	{
-		int? stateValue = vars.IsOG ? mapping.OG : mapping.HD;
-		if (stateValue.HasValue)
-			((IDictionary<string, object>)vars)[mapping.Name] = stateValue.Value;
+		int? gamestate = vars.IsOG ? mapping.OG : mapping.HD;
+		((IDictionary<string, object>)vars)[mapping.Name] = gamestate;
 	}
 
 	// Set constants for dante yellow crystal detection
