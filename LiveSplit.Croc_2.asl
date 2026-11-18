@@ -722,6 +722,7 @@ update {
 	}
 	
 	// Speed display
+	// FIXME: see if you can simplify this by using GameFrame
 	// Maybe move this to a Cheat Engine GUI or a separate asl script or something?
 	//      https://wiki.cheatengine.org/index.php?title=Tutorial:LuaFormGUI
 	if (settings["SpeedDisplay"])
@@ -833,9 +834,9 @@ update {
 		{
 			debugText +=
 				"\n┃GameState: " + vars.GetGameStateSymbol(old.GameState, vars.IsOG) + 
-				"(" + old.GameState.ToString() + ") →" +
+				" (" + old.GameState.ToString() + ") →" +
 				"\n┃           " + vars.GetGameStateSymbol(current.GameState, vars.IsOG) + 
-				"(" + current.GameState.ToString() + ")";
+				" (" + current.GameState.ToString() + ")";
 		}
 		
 		// NewGameState changes
@@ -844,9 +845,9 @@ update {
 		{
 			debugText +=
 				"\n┃NewGameState: " + vars.GetGameStateSymbol(old.NewGameState, vars.IsOG) + 
-				"(" + old.NewGameState.ToString() + ") →" +
+				" (" + old.NewGameState.ToString() + ") →" +
 				"\n┃              " + vars.GetGameStateSymbol(current.NewGameState, vars.IsOG) + 
-				"(" + current.NewGameState.ToString() + ")";
+				" (" + current.NewGameState.ToString() + ")";
 		}
 		
 		// IsNewGameStateValid changes
