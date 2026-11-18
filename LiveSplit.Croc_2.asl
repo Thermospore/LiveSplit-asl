@@ -401,6 +401,7 @@ startup {
 	);
 
 	// Define GameOver constants (found inside the HD croc2.exe)
+	// FIXME: give this the same treatment at GameState below, so we can have nice debug output
 	vars.GO_NORMAL        = 0;
 	vars.GO_CONTINUE      = 1;
 	vars.GO_GAMEOVER      = 2;
@@ -411,6 +412,59 @@ startup {
 	vars.GO_NEWLEVEL      = 7;
 	vars.GO_TITLE         = 8;
 	vars.GO_LEVELSELECT   = 9;
+
+	// ==== Define GameState mappings (ref: C2SN "GameState" article) ====
+	var mappings = new List<object>();
+
+	Func<string, int?, int?, object> createMapping = (name, hd, og) => {
+		dynamic m = new System.Dynamic.ExpandoObject();
+		m.Name = name;
+		m.HD = hd;
+		m.OG = og;
+		return m;
+	};
+
+	// Official symbols        state name           HD  OG
+	mappings.Add(createMapping("GS_NONE",           0,  0));
+	mappings.Add(createMapping("GS_INIT",           1,  8));
+	mappings.Add(createMapping("GS_LANGUAGE",       2,  13));
+	mappings.Add(createMapping("GS_TITLE",          3,  16));
+	mappings.Add(createMapping("GS_GAME",           4,  11));
+	mappings.Add(createMapping("GS_DEMO",           5,  5));
+	mappings.Add(createMapping("GS_OPTIONS",        6,  14));
+	mappings.Add(createMapping("GS_INITIALS",       7,  9));
+	mappings.Add(createMapping("GS_CHOOSELOAD",     8,  1));
+	mappings.Add(createMapping("GS_CONTINUE",       9,  3));
+	mappings.Add(createMapping("GS_INTRO",          10, null));
+	mappings.Add(createMapping("GS_GAMEOVER",       11, 12));
+	mappings.Add(createMapping("GS_CREDITS",        12, 4));
+	mappings.Add(createMapping("GS_NEXTLEVEL",      13, null));
+	mappings.Add(createMapping("GS_LEVELSELECT",    14, 18));
+	mappings.Add(createMapping("GS_GO_TO_TITLE",    15, 19));
+	mappings.Add(createMapping("GS_GO_TO_HUB4",     16, 20));
+	mappings.Add(createMapping("GS_EXIT_SLIDESHOW", 17, null));
+	mappings.Add(createMapping("GS_BONUS_CONTENT",  18, null));
+	mappings.Add(createMapping("GS_LOAD_SCREEN",    19, null));
+	mappings.Add(createMapping("GS_SPLASH",         20, null));
+
+	// Symbols made up by Thermospore
+	mappings.Add(createMapping("GS_CHOOSENEW",      null, 2));
+	mappings.Add(createMapping("GS_SHUTDOWN",       null, 6));
+
+	vars.GameStateMappings = mappings;
+
+	// Given an int GameState, returns its symbol as a string
+	vars.GetGameStateSymbol = new Func<int, string, string>((GameState, era) => {
+		foreach (dynamic mapping in mappings)
+		{
+			int? v = (era == "HD") ? mapping.HD : mapping.OG;
+			if (v.HasValue && v.Value == GameState)
+			{
+				return mapping.Name;
+			}
+		}
+		return "★★★UNKNOWN★★★";
+	});
 }
 
 init {
@@ -483,65 +537,23 @@ init {
 			return;
 	}
 
-	// Set era dependent constants
+	// Set GameState constants
+	// FIXME: check if vars. gets wiped when switching game version.
+	//        otherwise, invalid GS_ constants might be left in vars. when you switch between HD/OG
 	// FIXME: compare GameState timing between OG and HD
+	foreach (dynamic mapping in vars.GameStateMappings)
+	{
+		int? stateValue = (vars.era == "HD") ? mapping.HD : mapping.OG;
+		if (stateValue.HasValue)
+			((IDictionary<string, object>)vars)[mapping.Name] = stateValue.Value;
+	}
+
+	// Set constants for dante yellow crystal detection
 	vars.OffsetOfStratPCField = game.Is64Bit() ? 0x000 : 0x00C;
 	vars.OffsetOfPtrToNextStrat = game.Is64Bit() ? 0x008 : 0x000;
-	switch ((string)vars.era)
-	{
-		case "OG":
-			vars.ProgressListOffset = 0x2d0;
 
-			// FIXME: Some of the OG mappings are still unknown.
-			//        See GameState article on C2SN for ref
-			vars.GS_CHOOSELOAD     =  1;
-			vars.MainState_NGSaveSlot     =  2; // New Game - select save slot
-			vars.GS_CONTINUE       =  3;
-			vars.GS_CREDITS		   =  4;
-			vars.GS_DEMO           =  5;
-			vars.MainState_ExitGame       =  6; // Might be GS_EXIT_SLIDESHOW?
-			vars.GS_SPLASH         =  8;
-			vars.GS_INITIALS       =  9;
-			vars.GS_GAME           = 11;
-			vars.GS_GAMEOVER       = 12;
-			vars.GS_LANGUAGE       = 13;
-			vars.GS_OPTIONS        = 14;
-			vars.GS_TITLE          = 16;
-			vars.GS_LEVELSELECT    = 18;
-			vars.GS_GO_TO_TITLE    = 19;
-			vars.GS_GO_TO_HUB4     = 20;
-
-			break;
-		
-		case "HD":
-			vars.ProgressListOffset = 0x30C;
-
-			vars.GS_NONE           =  0;
-			vars.GS_INIT           =  1;
-			vars.GS_LANGUAGE       =  2;
-			vars.GS_TITLE          =  3;
-			vars.GS_GAME           =  4;
-			vars.GS_DEMO           =  5;
-			vars.GS_OPTIONS        =  6;
-			vars.GS_INITIALS       =  7;
-			vars.GS_CHOOSELOAD     =  8;
-			vars.GS_CONTINUE       =  9;
-			vars.GS_INTRO          = 10;
-			vars.GS_GAMEOVER       = 11;
-			vars.GS_CREDITS        = 12;
-			vars.GS_NEXTLEVEL      = 13;
-			vars.GS_LEVELSELECT    = 14;
-			vars.GS_GO_TO_TITLE    = 15;
-			vars.GS_GO_TO_HUB4     = 16;
-			vars.GS_EXIT_SLIDESHOW = 17;
-			vars.GS_BONUS_CONTENT  = 18;
-			vars.GS_LOAD_SCREEN    = 19;
-			vars.GS_SPLASH         = 20;
-			break;
-
-		default:
-			return;
-	}
+	// Set constant for indexing into progress list
+	vars.ProgressListOffset = (vars.era == "HD") ? 0x30C : 0x2d0;
 
 	// Initialize variable for speed display
 	vars.curMS = 0;
@@ -815,16 +827,22 @@ update {
 		if (settings["DO_GameState"] &&
 			old.GameState != current.GameState)
 		{
-			debugText += "\n┃GameState: " + old.GameState.ToString() +
-				" → " + current.GameState.ToString();
+			debugText +=
+				"\n┃GameState: " + vars.GetGameStateSymbol(old.GameState, vars.era) + 
+				"(" + old.GameState.ToString() + ") →" +
+				"\n┃           " + vars.GetGameStateSymbol(current.GameState, vars.era) + 
+				"(" + current.GameState.ToString() + ")";
 		}
 		
 		// NewGameState changes
 		if (settings["DO_NewGameState"] &&
 			old.NewGameState != current.NewGameState)
 		{
-			debugText += "\n┃NewGameState: " + old.NewGameState.ToString() +
-				" → " + current.NewGameState.ToString();
+			debugText +=
+				"\n┃NewGameState: " + vars.GetGameStateSymbol(old.NewGameState, vars.era) + 
+				"(" + old.NewGameState.ToString() + ") →" +
+				"\n┃              " + vars.GetGameStateSymbol(current.NewGameState, vars.era) + 
+				"(" + current.NewGameState.ToString() + ")";
 		}
 		
 		// IsNewGameStateValid changes
@@ -937,7 +955,7 @@ start {
 		{
 			case "OG":
 				// When GameState is in transition from new game save slot screen -> GS_GAME
-				if (current.GameState == vars.MainState_NGSaveSlot &&
+				if (current.GameState == vars.GS_CHOOSENEW &&
 					current.IsNewGameStateValid != 0 &&
 					current.NewGameState == vars.GS_GAME)
 				{
@@ -946,7 +964,7 @@ start {
 				break;
 
 			case "HD":
-				// MainState_NGSaveSlot doesn't exist in HD
+				// GS_CHOOSENEW doesn't exist in HD
 				// (because the new game / load game screens were merged with the main menu)
 				// So instead, we can check if the new game cutscene is being loaded
 				if (current.GameState == vars.GS_TITLE &&
