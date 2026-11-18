@@ -496,9 +496,9 @@ init {
 		case "OG":
 			vars.ProgressListOffset = 0x2d0;
 
-			// FIXME: I'm in the middle of mapping the old MainState variables to GS_ ones
+			// FIXME: Some of the OG mappings are still unknown.
 			//        See GameState article on C2SN for ref
-			vars.MainState_LGSaveSlot     =  1; // Load Game - select save slot
+			vars.GS_CHOOSELOAD     =  1;
 			vars.MainState_NGSaveSlot     =  2; // New Game - select save slot
 			vars.GS_CONTINUE       =  3;
 			vars.GS_CREDITS		   =  4;
@@ -513,7 +513,7 @@ init {
 			vars.GS_TITLE          = 16;
 			vars.GS_LEVELSELECT    = 18;
 			vars.GS_GO_TO_TITLE    = 19;
-			// vars.GS_GO_TO_HUB4   = ??; // Need to test
+			vars.GS_GO_TO_HUB4     = 20;
 
 			break;
 		
