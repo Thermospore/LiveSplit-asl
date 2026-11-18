@@ -442,14 +442,14 @@ startup {
 	mappings.Add(createMapping("GS_LEVELSELECT",    14, 18));
 	mappings.Add(createMapping("GS_GO_TO_TITLE",    15, 19));
 	mappings.Add(createMapping("GS_GO_TO_HUB4",     16, 20));
-	mappings.Add(createMapping("GS_EXIT_SLIDESHOW", 17, null));
+	mappings.Add(createMapping("GS_EXIT_SLIDESHOW", 17, 6));
 	mappings.Add(createMapping("GS_BONUS_CONTENT",  18, null));
 	mappings.Add(createMapping("GS_LOAD_SCREEN",    19, null));
 	mappings.Add(createMapping("GS_SPLASH",         20, null));
 
 	// Symbols made up by Thermospore
 	mappings.Add(createMapping("GS_CHOOSENEW",      null, 2));
-	mappings.Add(createMapping("GS_SHUTDOWN",       null, 6));
+	mappings.Add(createMapping("GS_SLIDESHOW_END",  null, 7));
 
 	vars.GameStateMappings = mappings;
 
