@@ -1,142 +1,236 @@
-state("Croc2", "US")
-{
-	int CrocX               : 0xA8C3C, 0x14, 0x28, 0x2c;
-	int CrocY               : 0xA8C3C, 0x14, 0x28, 0x30;
-	int CrocZ               : 0xA8C3C, 0x14, 0x28, 0x34;
-	int CurTribe            : 0xA8C44;
-	int CurLevel            : 0xA8C48;
-	int CurMap              : 0xA8C4C;
-	int CurType             : 0xA8C50;
-	int InGameState         : 0xB7880;
-	int IsCheatMenuOpen     : 0xB788C;
-	bool IsMapLoaded        : 0xB78C4;
-	int NewMainState        : 0xB7930;
-	int IsNewMainStateValid : 0xB7934;
-	int MainState           : 0xB793C;
+state("Croc2", "OG-US") {
+	int CrocX               :  0xA8C3C, 0x14, 0x28, 0x2c;
+	int CrocY               :  0xA8C3C, 0x14, 0x28, 0x30;
+	int CrocZ               :  0xA8C3C, 0x14, 0x28, 0x34;
+	int CurTribe            :  0xA8C44;
+	int CurLevel            :  0xA8C48;
+	int CurMap              :  0xA8C4C;
+	int CurType             :  0xA8C50;
+	int GameOver            :  0xB7880; // AKA InGameState
+	bool DebugMode          :  0xB788C; // AKA IsCheatMenuOpen
+	bool IsMapLoaded        :  0xB78C4;
+	int NewGameState        :  0xB7930;
+	int IsNewGameStateValid :  0xB7934;
+	int GameState           :  0xB793C; // AKA MainState
+	uint GameFrame          :  0xB7EAC;
 	int Inputs              : 0x12A590;
 	int GemCounter          : 0x12AECC;
-	int GobboCounter        : 0x12AEE0;
+	int ExtraCount          : 0x12AEE0; // AKA GobboCounter
 	int AllowReturnToHub    : 0x12AEFC;
 	int CurSaveSlotIdx      : 0x2220FC;
-	int DFCrystal5IP        : 0x223D10;
 }
 
-state("Croc2", "EU")
-{
-	int CrocX               : 0xA9C3C, 0x14, 0x28, 0x2c;
-	int CrocY               : 0xA9C3C, 0x14, 0x28, 0x30;
-	int CrocZ               : 0xA9C3C, 0x14, 0x28, 0x34;
-	int CurTribe            : 0xA9C44;
-	int CurLevel            : 0xA9C48;
-	int CurMap              : 0xA9C4C;
-	int CurType             : 0xA9C50;
-	int InGameState         : 0xBEA70;
-	int IsCheatMenuOpen     : 0xBEA7C;
-	bool IsMapLoaded        : 0xBEAB4;
-	int NewMainState        : 0xBEB20;
-	int IsNewMainStateValid : 0xBEB24;
-	int MainState           : 0xBEB2C;
+state("Croc2", "OG-EU") {
+	int CrocX               :  0xA9C3C, 0x14, 0x28, 0x2c;
+	int CrocY               :  0xA9C3C, 0x14, 0x28, 0x30;
+	int CrocZ               :  0xA9C3C, 0x14, 0x28, 0x34;
+	int CurTribe            :  0xA9C44;
+	int CurLevel            :  0xA9C48;
+	int CurMap              :  0xA9C4C;
+	int CurType             :  0xA9C50;
+	int GameOver            :  0xBEA70;
+	bool DebugMode          :  0xBEA7C;
+	bool IsMapLoaded        :  0xBEAB4;
+	int NewGameState        :  0xBEB20;
+	int IsNewGameStateValid :  0xBEB24;
+	int GameState           :  0xBEB2C;
+	uint GameFrame          :  0xBF09C;
 	int Inputs              : 0x131780;
 	int GemCounter          : 0x1320BC;
-	int GobboCounter        : 0x1320D0;
+	int ExtraCount          : 0x1320D0;
 	int AllowReturnToHub    : 0x1320EC;
 	int CurSaveSlotIdx      : 0x2292EC;
-	int DFCrystal5IP        : 0x22AF00;
 }
 
-startup
+state("croc2", "HD-STEAM")
 {
+	int GameState           : 0xB5D5E8; 
+	int CrocX               : 0xBC7CE8, 0x4C;
+	int CrocY               : 0xBC7CE8, 0x50;
+	int CrocZ               : 0xBC7CE8, 0x54;
+	uint GameFrame          : 0xBC86FC;
+		// OG: counts up by 1 at 30hz 
+		// HD: counts up by 2 at 30hz
+	int CurTribe            : 0xBC87D4;
+	int CurLevel            : 0xBC87D8;
+	int CurMap              : 0xBC87DC;
+	int CurType             : 0xBC87E0;
+	bool DebugMode          : 0xB8E0F8;
+		// OG (int):  menu closed = 0, open = 1
+		// HD (int):  menu closed = 0, open = -1 (0xFFFFFFFF)
+		// Switching this to a bool, so behaviour is the same between OG and HD
+	int GameOver            : 0xB90D30;
+	int NewGameState        : 0xB90D3C;
+	// int IsNewGameStateValid : 0x;
+		// FIXME: find this for save slot start, if you can
+	long CurrentMap         : 0xB90D70;
+		// This was a candidate for load removal, but is currently unused.
+		// Leaving it in here for the moment; seems useful.
+		// (needs a better name tho; this will get mixed up with CurMap)
+	int NewTribe            : 0xBA9B04;
+	int NewLevel            : 0xBA9B08;
+	int NewMap              : 0xBA9B0C;
+	int NewType             : 0xBA9B10;
+		// NOTE: Watch out for GOA screen; it behaves differently
+		// FIXME: Is NewWAD present in og?
+		//        Also, think about if NewWAD could be useful for race condition prevention (or for other parts of the autosplitter)
+	int Inputs              : 0xBC4B54;
+	int ExtraCount          : 0xBC4C6C;
+	int GemCounter          : 0xBC4DAC;
+}
+
+// GameState address is -0x3000; the rest are -0x2D00 (relative to Steam)
+state("croc2", "HD-GOG")
+{
+	int GameState           : 0xB5A5E8;
+	int CrocX               : 0xBC4FE8, 0x4C;
+	int CrocY               : 0xBC4FE8, 0x50;
+	int CrocZ               : 0xBC4FE8, 0x54;
+	uint GameFrame          : 0xBC59FC;
+	int CurTribe            : 0xBC5AD4;
+	int CurLevel            : 0xBC5AD8;
+	int CurMap              : 0xBC5ADC;
+	int CurType             : 0xBC5AE0;
+	bool DebugMode          : 0xB8B3F8;
+	int GameOver            : 0xB8E030;
+	int NewGameState        : 0xB8E03C;
+	long CurrentMap         : 0xB8E070;
+	int NewTribe            : 0xBA6E04;
+	int NewLevel            : 0xBA6E08;
+	int NewMap              : 0xBA6E0C;
+	int NewType             : 0xBA6E10;
+	int Inputs              : 0xBC1E54;
+	int ExtraCount          : 0xBC1F6C;
+	int GemCounter          : 0xBC20AC;
+}
+// FIXME: state variables are getting quite lengthy...
+// consider switching to a MemoryWatcherList to save space:
+// https://discord.com/channels/313375426112389123/408694062862958592/1571366821070766250
+
+startup {
+	// For the time being, we are pickling OG load removal code as-is. See:
+	// https://discord.com/channels/313375426112389123/408694062862958592/1569319116995559437
+	vars.USE_OLD_LRT_FOR_OG = true;
+
 	// Start
 	settings.Add("RequireUnusedBossWarps", true,
-		"Do not start if any boss warp has already been used");
+		"Do not start if any boss warp has already been used (OG)");
+	settings.SetToolTip("RequireUnusedBossWarps",
+		"FIXME: need to test if they fixed the boss warp bug on HD." + 
+		"\nCurrently this setting is disabled for HD.");
+
 	settings.Add("SaveSlotStart", true,
 		"Save slot start");
-		settings.SetToolTip("SaveSlotStart",
-			"Starts timer on creating a new save file");
+	settings.SetToolTip("SaveSlotStart",
+		"Starts timer on creating a new save file");
+
 	settings.Add("InputStart", false,
 		"Start on any input");
-		settings.SetToolTip("InputStart",
-			"Useful for testing / timing things");
+	settings.SetToolTip("InputStart",
+		"Useful for testing / timing things");
+
 	settings.Add("ILstart", false,
 		"IL start");
-		settings.SetToolTip("ILstart",
-			"Starts timer on map change when you enter a level");
+	settings.SetToolTip("ILstart",
+		"Starts timer on map change when you enter a level");
+
 	settings.Add("OTSstart", false,
 		"OTS start");
-		settings.SetToolTip("OTSstart",
-			"Starts timer on map change when you enter hub" +
-			"\n\n(note: used to record times for the Overworld Times Sheet)" +
-			"\n(note: secret is currently disabled, as its OTS isn't set up yet)");
-		settings.Add("OTSstart_SMP", false,
-			"Also start on SMP entry", "OTSstart");
+	settings.SetToolTip("OTSstart",
+		"Starts timer on map change when you enter hub" +
+		"\n\n(note: used to record times for the Overworld Times Sheet)" +
+		"\n(note: secret is currently disabled, as its OTS isn't set up yet)");
+	settings.Add("OTSstart_SMP", false,
+		"Also start on SMP entry", "OTSstart");
+
 	settings.Add("IWstart", false,
 		"IW start");
-		settings.SetToolTip("IWstart",
-			"Starts timer on map change when you exit SMP to hub" +
-			"\n\n(note: using the cheat menu to warp is equivalent)" +
-			"\n(fun fact: WW, SQ, GOA, (and sometimes DA) are not equivalent;" +
-			"\nthey give a different hub spawn!)");
+	settings.SetToolTip("IWstart",
+		"Starts timer on map change when you exit SMP to hub" +
+		"\n\n(note: using the cheat menu to warp is equivalent)" +
+		"\n(fun fact: WW, SQ, GOA, (and sometimes DA) are not equivalent;" +
+		"\nthey give a different hub spawn!)");
 
 	// Split
 	settings.Add("SplitOnMapChange", true,
 		"IL/OTS end split");
-		settings.SetToolTip("SplitOnMapChange",
-			"Splits timer on any relevant map change to end an IL or OTS run" +
-			"\n\nThis can also be used in fullgame runs, to chain multiple IL and OTS segments together!" +
-			"\n(\"IL style splits\")");
-		settings.Add("SplitOnMapChange_literal", false,
-			"Split on literally any map change", "SplitOnMapChange");
+	settings.SetToolTip("SplitOnMapChange",
+		"Splits timer on any relevant map change to end an IL or OTS run" +
+		"\n\nThis can also be used in fullgame runs, to chain multiple IL and OTS segments together!" +
+		"\n(\"IL style splits\")");
+	settings.Add("SplitOnMapChange_literal", false,
+		"Split on literally any map change", "SplitOnMapChange");
+
 	settings.Add("SplitOnObjectiveCompletion", false,
 		"Split on objective completion");
-		settings.SetToolTip("SplitOnObjectiveCompletion",
-			"(note: you probably want to disable this if doing IL style splits)");
-		settings.Add("SplitOnSMPEntry", false,
-			"IW end split", "SplitOnObjectiveCompletion");
-			settings.SetToolTip("SplitOnSMPEntry",
-				"Splits timer on map change into SMP" +
-				"\n\n(note: this option is redundant if IL/OTS end split is enabled!)");
-		settings.Add("SplitOnGoldenGobbo", false,
-			"100% (require Golden Gobbo)", "SplitOnObjectiveCompletion");
-		settings.Add("SplitOnDanteCrystals", false,
-			"Split on collecting crystals in Dante's World", "SplitOnObjectiveCompletion");
+	settings.SetToolTip("SplitOnObjectiveCompletion",
+		"(note: you probably want to disable this if doing IL style splits)");
+	settings.Add("SplitOnSMPEntry", false,
+		"IW end split", "SplitOnObjectiveCompletion");
+	settings.SetToolTip("SplitOnSMPEntry",
+		"Splits timer on map change into SMP" +
+		"\n\n(note: this option is redundant if IL/OTS end split is enabled!)");
+	settings.Add("SplitOnGoldenGobbo", false,
+		"100% (require Golden Gobbo)", "SplitOnObjectiveCompletion");
+	settings.Add("SplitOnDanteCrystals", false,
+		"Split on collecting crystals in Dante's World", "SplitOnObjectiveCompletion");
+
 	settings.Add("SplitOnGem", false,
 		"Split on collecting gems");
-		settings.SetToolTip("SplitOnGem",
-			"(note: useful for IL runs)");
+	settings.SetToolTip("SplitOnGem",
+		"(note: useful for IL runs)");
+
 	settings.Add("BabiesSubsplits", false,
 		"Babies Subsplits");
-		for (int i = 1; i <= 30; i++)
-		{
-			settings.Add("BabiesSubsplits_" + i.ToString(), false,
+	for (int i = 1; i <= 30; i++)
+	{
+		settings.Add("BabiesSubsplits_" + i.ToString(), false,
 			i.ToString() + " / 30", "BabiesSubsplits");
-		}
+	}
 
 	// Debug
 	settings.Add("DebugOutput", false,
 		"Debug output");
-		settings.SetToolTip("DebugOutput",
+	settings.SetToolTip("DebugOutput",
 		"Prints debug info in Dbgview.exe" +
 		"\n\n(note: allows you to see which changes happened in the same ASL cycle)");
-		settings.Add("DO_MapChanges", true,
+	settings.Add("DO_TimerDetails", true,
+		"Timer details", "DebugOutput");
+	settings.Add("DO_MapChanges", true,
 		"Map changes", "DebugOutput");
-		settings.Add("DO_WadB4GH", true,
-		"WadB4GH changes", "DebugOutput");
-		settings.Add("DO_PrevTribeSSX", true,
-		"PrevTribeSSX changes", "DebugOutput");
-		settings.Add("DO_MainState", true,
-		"MainState changes", "DebugOutput");
-		settings.Add("DO_InGameState", true,
-		"InGameState changes", "DebugOutput");
-		settings.Add("DO_IsCheatMenuOpen", true,
-		"IsCheatMenuOpen changes", "DebugOutput");
-		settings.Add("DO_AllowReturnToHub", true,
-		"AllowReturnToHub changes", "DebugOutput");
-		settings.Add("DO_IsMapLoaded", true,
-		"IsMapLoaded changes", "DebugOutput");
+	settings.SetToolTip("DO_MapChanges",
+		"Both CurWAD and NewWAD. NewWAD is currently only supported on HD.");
+	settings.Add("DO_WADB4GH", true,
+		"WADB4GH changes", "DebugOutput");
+	settings.Add("DO_PrevTribeSSX", true,
+		"PrevTribeSSX changes (OG only)", "DebugOutput");
+	settings.Add("DO_GameState", true,
+		"GameState changes", "DebugOutput");
+	settings.Add("DO_NewGameState", true,
+		"NewGameState changes", "DebugOutput");
+	settings.Add("DO_IsNewGameStateValid", true,
+		"IsNewGameStateValid changes (not yet found on HD)", "DebugOutput");
+	settings.Add("DO_GameOver", true,
+		"GameOver changes", "DebugOutput");
+	settings.Add("DO_DebugMode", true,
+		"DebugMode changes", "DebugOutput");
+	settings.Add("DO_AllowReturnToHub", true,
+		"AllowReturnToHub changes (OG only)", "DebugOutput");
+	settings.Add("DO_IsMapLoaded", true,
+		"IsMapLoaded changes (OG only)", "DebugOutput");
+	settings.Add("DO_CurrentMap", true,
+		"CurrentMap changes (HD only)", "DebugOutput");
 		
-	// Speed display
-	// should probably move this to a Cheat Engine GUI or a separate asl script or something
-	//      https://wiki.cheatengine.org/index.php?title=Tutorial:LuaFormGUI
+	settings.Add("SpeedDisplay", false,
+		"Display Croc's speed in a LiveSplit text component");
+		settings.SetToolTip("SpeedDisplay",
+		"note 1: The text component is created automatically once Croc starts walking around" +
+		"\n\nnote 2: Croc 2 runs at 30fps. This display catches most but NOT ALL of the frames" +
+		"\n\nnote 3: Unfortunately, when Croc isn't moving the display just holds the last non-zero value");
+
+	settings.Add("ObjectiveFlagsDisplay", false,
+		"Display objective flags in a LiveSplit text component");
+
 	// SetTextComponent is taken from: https://github.com/zment4/DefyGravityASL
 	vars.SetTextComponent = (Action<string, string, bool>)((id, text, create) => {
 		dynamic textSetting = timer.Layout.Components
@@ -157,17 +251,68 @@ startup
 		if (textSetting != null)
 			textSetting.Text2 = text;
 	});
-	settings.Add("SpeedDisplay", false,
-		"Display Croc's speed in a LiveSplit text component");
-		settings.SetToolTip("SpeedDisplay",
-		"note 1: The text component is created automatically once Croc starts walking around" +
-		"\n\nnote 2: Croc 2 runs at 30fps. This display catches most but NOT ALL of the frames" +
-		"\n\nnote 3: Unfortunately, when Croc isn't moving the display just holds the last non-zero value");
 
 	// Returns true iff the current map ID changed
-	vars.HasMapIDChanged = new Func<dynamic, dynamic, bool>((state1, state2) =>
+	vars.HasCurWADChanged = new Func<dynamic, dynamic, bool>((state1, state2) =>
 		state1.CurTribe != state2.CurTribe || state1.CurLevel != state2.CurLevel ||
 		state1.CurMap != state2.CurMap || state1.CurType != state2.CurType);
+
+	vars.AllDFCrystalsJustPlaced = new Func<Process, dynamic, bool>((Memory, Vars) =>
+	{
+		// In "Dante's Final Fight", we cannot simply monitor the objective
+		// completion flag to detect the split, as there is an unacceptable
+		// delay between the placement of the final crystal and the flag being set.
+		// Instead, we take advantage of the unique occurrence of a specific
+		// short byte pattern within this map's ASL bytecode.
+		// Once a crystal is successfully placed, its program counter remains
+		// indefinitely at the memory address where this byte pattern is located.
+		// For split detection, we therefore iterate over all strats and count
+		// how many of them currently have their program counter pointing to
+		// this byte pattern. Once this count reaches 5, we trigger the split.
+
+		bool allCrystalsPlaced = false;
+		int crystalStratsAtFinalPC = 0;
+		var expectedBytes = new byte[] {
+			0x0A, 0x00, 0x00, 0x00, 0x00, 0x00, 0x04, 0x00, 0x28 };
+		IntPtr strat;
+		if (!Vars.PtrToFirstStrat.DerefOffsets(Memory, out strat))
+			return false;
+		for
+		(
+			;
+			strat != IntPtr.Zero;
+			strat = Memory.ReadPointer(strat + (int)Vars.OffsetOfPtrToNextStrat)
+		)
+		{
+			var pc = Memory.ReadPointer(strat + (int)Vars.OffsetOfStratPCField);
+			if (pc == IntPtr.Zero)
+				continue;
+			var bytesAtPC = Memory.ReadBytes(pc, expectedBytes.Length);
+			if (bytesAtPC == null)
+				continue;
+			int byteIdx;
+			for (byteIdx = 0; byteIdx < bytesAtPC.Length; ++byteIdx)
+			{
+				if (bytesAtPC[byteIdx] != expectedBytes[byteIdx])
+					break;
+			}
+			if (byteIdx < bytesAtPC.Length)
+				continue;
+			if (++crystalStratsAtFinalPC == 5)
+			{
+				allCrystalsPlaced = true;
+				break;
+			}
+		}
+
+		object wereAllCrystalsPlaced;
+		((IDictionary<string, object>)Vars).TryGetValue(
+			"AllDFCrystalsPlaced", out wereAllCrystalsPlaced);
+		Vars.AllDFCrystalsPlaced = allCrystalsPlaced;
+
+		return allCrystalsPlaced &&
+			(wereAllCrystalsPlaced == null || !(bool)wereAllCrystalsPlaced);
+	});
 
 	// Returns true iff map has specified map ID
 	vars.IsThisMap = new Func<dynamic, int, int, int, int, bool>(
@@ -188,6 +333,8 @@ startup
 	// Returns true iff a wrong warp is being performed
 	vars.IsWrongWarp = new Func<dynamic, dynamic, bool>((oldState, curState) =>
 		// old map is not hub map - can't use functions in functions :(
+		// FIXME: you *can* use fns in fns! see GenerateWAD() below.
+		//        just define the Func locally in this scope before adding it to vars.
 		!(oldState.CurTribe >= 1 && oldState.CurTribe <= 4 &&
 		oldState.CurLevel == 1 && oldState.CurMap == 1 && oldState.CurType == 0) &&
 		// new map is hub map
@@ -198,52 +345,230 @@ startup
 		// saveslot PrevTribe is already 0 (this is the main indicator)
 		// (in fact, this might be what actually causes the wrong warp!)
 		curState.PrevTribeSSX == 0);
+
+	// Used for uninitialized WAD integers (Tribe, Level, Map, Type)
+	// (maybe try using `int?`s plus actual `null`s?)
+	const int NULL_VAL = -1;
+	vars.NULL_VAL = NULL_VAL;
+
+	// Convert WAD ID integers (Tribe, Level, Map, Type) into their filename
+	// See here for documentation of the naming scheme:
+	// https://github.com/hdc0/Croc-2-mods/blob/master/doc/wad_files.md#naming-scheme
+    Func<int, int, int, int, string> GenerateWADString = (Tribe, Level, Map, Type) => {
+		// FIXME: use actual null, instead of vars.NULL_VAL?
+		if (Tribe == NULL_VAL || Level == NULL_VAL || Map == NULL_VAL || Type == NULL_VAL)
+		{
+			return "[ null ]";
+		}
+		else
+		{
+			char typeChar = '?';
+			switch (Type) {
+				case 0: typeChar = 'l'; break; // l(evel)
+				case 1: typeChar = 'b'; break; // b(oss)
+				case 2: typeChar = 's'; break; // s(ecret jigsaw)
+				case 3: typeChar = 'i'; break; // i(ntro)
+			}
+			return string.Format("t{0}{1}{2}m{3:D3}", Tribe, typeChar, Level, Map);
+		}
+    };
+	vars.GenerateWADString = GenerateWADString;
+
+	// Takes in the four WAD ID ints and returns a packaged ExpandoObject
+	Func<int, int, int, int, dynamic> GenerateWAD = (Tribe, Level, Map, Type) => {
+		dynamic WAD = new System.Dynamic.ExpandoObject();
+		WAD.Tribe = Tribe;
+		WAD.Level = Level;
+		WAD.Map   = Map;
+		WAD.Type  = Type;
+		WAD.ID    = GenerateWADString(Tribe, Level, Map, Type);
+		return WAD;
+	};
+	vars.GenerateWAD = GenerateWAD;
+
+	// Returns CurWAD as a packaged ExpandoObject
+	vars.CurWAD = new Func<dynamic, dynamic>(state => GenerateWAD(
+		state.CurTribe, state.CurLevel, state.CurMap, state.CurType));
+
+	// Returns NewWAD as a packaged ExpandoObject
+	vars.NewWAD = new Func<dynamic, dynamic>(state => GenerateWAD(
+		state.NewTribe, state.NewLevel, state.NewMap, state.NewType));
+
+	// Returns IGT
+	vars.getGameTime = new Func<uint, uint, bool, TimeSpan>((GameFrame, StartFrame, IsOG) =>
+		new TimeSpan((GameFrame - StartFrame) *
+			TimeSpan.TicksPerSecond / (IsOG ? 30 : 60))
+	);
+
+	// Define GameOver constants (found inside the HD croc2.exe)
+	// FIXME: give this the same treatment at GameState below, so we can have nice debug output
+	vars.GO_NORMAL        = 0;
+	vars.GO_CONTINUE      = 1;
+	vars.GO_GAMEOVER      = 2;
+	vars.GO_LEVELCOMPLETE = 3;
+	vars.GO_CREDITS       = 4;
+	vars.GO_RESETLEVEL    = 5;
+	vars.GO_DOOR          = 6;
+	vars.GO_NEWLEVEL      = 7;
+	vars.GO_TITLE         = 8;
+	vars.GO_LEVELSELECT   = 9;
+
+	// ==== Define GameState mappings (ref: C2SN "GameState" article) ====
+	var mappings = new List<object>();
+
+	Func<string, int?, int?, object> createMapping = (name, hd, og) => {
+		dynamic m = new System.Dynamic.ExpandoObject();
+		m.Name = name;
+		m.HD = hd;
+		m.OG = og;
+		return m;
+	};
+
+	// Official symbols        state name           HD  OG
+	mappings.Add(createMapping("GS_NONE",           0,  0));
+	mappings.Add(createMapping("GS_INIT",           1,  8));
+	mappings.Add(createMapping("GS_LANGUAGE",       2,  13));
+	mappings.Add(createMapping("GS_TITLE",          3,  16));
+	mappings.Add(createMapping("GS_GAME",           4,  11));
+	mappings.Add(createMapping("GS_DEMO",           5,  5));
+	mappings.Add(createMapping("GS_OPTIONS",        6,  14));
+	mappings.Add(createMapping("GS_INITIALS",       7,  9));
+	mappings.Add(createMapping("GS_CHOOSELOAD",     8,  1));
+	mappings.Add(createMapping("GS_CONTINUE",       9,  3));
+	mappings.Add(createMapping("GS_INTRO",          10, null));
+	mappings.Add(createMapping("GS_GAMEOVER",       11, 12));
+	mappings.Add(createMapping("GS_CREDITS",        12, 4));
+	mappings.Add(createMapping("GS_NEXTLEVEL",      13, null));
+	mappings.Add(createMapping("GS_LEVELSELECT",    14, 18));
+	mappings.Add(createMapping("GS_GO_TO_TITLE",    15, 19));
+	mappings.Add(createMapping("GS_GO_TO_HUB4",     16, 20));
+	mappings.Add(createMapping("GS_EXIT_SLIDESHOW", 17, 6));
+	mappings.Add(createMapping("GS_BONUS_CONTENT",  18, null));
+	mappings.Add(createMapping("GS_LOAD_SCREEN",    19, null));
+	mappings.Add(createMapping("GS_SPLASH",         20, null));
+
+	// Symbols made up by Thermospore
+	mappings.Add(createMapping("GS_CHOOSENEW",      null, 2));
+	mappings.Add(createMapping("GS_SLIDESHOW_END",  null, 7));
+
+	vars.GameStateMappings = mappings;
+
+	// Given an int GameState, returns its symbol as a string
+	vars.GetGameStateSymbol = new Func<int, bool, string>((GameState, IsOG) => {
+		foreach (dynamic mapping in mappings)
+		{
+			int? v = IsOG ? mapping.OG : mapping.HD;
+			if (v.HasValue && v.Value == GameState)
+			{
+				return mapping.Name;
+			}
+		}
+		return "★★★UNKNOWN★★★";
+	});
 }
 
-init
-{
+init {
 	var firstModule = modules.First();
 	var baseAddr = firstModule.BaseAddress;
-	int addrScriptMgr;
+
+	// Detect game version
+	// FIXME: SURELY there is a way to remove the redundant vars.AddrCurWAD definitions?
+	//        (the same addresses are defined up top as state variables)
+	//        Could maybe switch to a MemoryWatcherList like hdc0 uses here:
+	//        https://discord.com/channels/313375426112389123/408694062862958592/1571366821070766250
 	switch (firstModule.ModuleMemorySize)
 	{
 		case 0x23A000:
-			version = "US";
-			addrScriptMgr = 0xB78BC;
-			vars.AddrCurTribe       = baseAddr + 0xA8C44;
-			vars.AddrCurLevel       = baseAddr + 0xA8C48;
-			vars.AddrCurMap         = baseAddr + 0xA8C4C;
-			vars.AddrCurType        = baseAddr + 0xA8C50;
-			vars.AddrSaveSlots      = baseAddr + 0x2040C0;
-			vars.AddrUsedBossWarps  = baseAddr + 0x222D50;
-			vars.DFCrystal5FinalIP  = 0x1741C8;
+			version = "OG-US";
+			vars.IsOG = true;
+
+			vars.AddrCurTribe        = baseAddr +  0xA8C44;
+			vars.AddrCurLevel        = baseAddr +  0xA8C48;
+			vars.AddrCurMap          = baseAddr +  0xA8C4C;
+			vars.AddrCurType         = baseAddr +  0xA8C50;
+			vars.AddrSaveSlots       = baseAddr + 0x2040C0;
+			vars.AddrIntrosTriggered = baseAddr + 0x222D50; // AKA UsedBossWarps
+			vars.PtrToFirstStrat = new DeepPointer(baseAddr + 0xB78BC, 0x20);
 			break;
-		case 0x242000:
-			version = "EU";
-			addrScriptMgr = 0xBEAAC;
-			vars.AddrCurTribe       = baseAddr + 0xA9C44;
-			vars.AddrCurLevel       = baseAddr + 0xA9C48;
-			vars.AddrCurMap         = baseAddr + 0xA9C4C;
-			vars.AddrCurType        = baseAddr + 0xA9C50;
-			vars.AddrSaveSlots      = baseAddr + 0x20B2B0;
-			vars.AddrUsedBossWarps  = baseAddr + 0x229F40;
-			vars.DFCrystal5FinalIP  = 0x174210;
+
+		case 0x242000: // 2000 original + 2026 classic (GOG)
+		case 0x271000: // 2026 classic (Steam)
+			version = "OG-EU";
+			vars.IsOG = true;
+
+			vars.AddrCurTribe        = baseAddr +  0xA9C44;
+			vars.AddrCurLevel        = baseAddr +  0xA9C48;
+			vars.AddrCurMap          = baseAddr +  0xA9C4C;
+			vars.AddrCurType         = baseAddr +  0xA9C50;
+			vars.AddrSaveSlots       = baseAddr + 0x20B2B0;
+			vars.AddrIntrosTriggered = baseAddr + 0x229F40;
+			vars.PtrToFirstStrat = new DeepPointer(baseAddr + 0xBEAAC, 0x20);
 			break;
+
+		case 0xC80000:
+			version = "HD-STEAM";
+			vars.IsOG = false;
+
+			vars.AddrSaveSlot = baseAddr + 0xBA9878;
+				// Your save data seems to be stored here; it gets saved to:
+				// `\AppData\Roaming\Croc 2\saves\76561198041092660\game_X.sav`
+				// where X is replaced with the save slot #
+			vars.AddrCurTribe = baseAddr + 0xBC87D4;
+			vars.AddrCurLevel = baseAddr + 0xBC87D8;
+			vars.AddrCurMap   = baseAddr + 0xBC87DC;
+			vars.AddrCurType  = baseAddr + 0xBC87E0;
+			vars.PtrToFirstStrat = new DeepPointer(baseAddr + 0xBC7D20, 0);
+			break;
+
+		case 0xC43000:
+			version = "HD-GOG";
+			vars.IsOG = false;
+			
+			vars.AddrSaveSlot = baseAddr + 0xBA6B78;
+			vars.AddrCurTribe = baseAddr + 0xBC5AD4;
+			vars.AddrCurLevel = baseAddr + 0xBC5AD8;
+			vars.AddrCurMap   = baseAddr + 0xBC5ADC;
+			vars.AddrCurType  = baseAddr + 0xBC5AE0;
+			vars.PtrToFirstStrat = new DeepPointer(baseAddr + 0xBC5020, 0);
+			break;
+
 		default:
+			vars.UnknownVersionErrorString =
+				"★ AUTOSPLITTER ERROR:\n" +
+				"★ UNKNOWN CROC 2 VERSION\n" +
+				"★ firstModule.ModuleMemorySize: 0x" +
+				firstModule.ModuleMemorySize.ToString("X");
 			return;
 	}
 
-	vars.ScriptCodeStart = new DeepPointer(addrScriptMgr, 0x1C);
-	
+	// Set GameState constants
+	foreach (dynamic mapping in vars.GameStateMappings)
+	{
+		int? gamestate = vars.IsOG ? mapping.OG : mapping.HD;
+		((IDictionary<string, object>)vars)[mapping.Name] = gamestate;
+	}
+
+	// Set constant for indexing into progress list
+	vars.ProgressListOffset = vars.IsOG ? 0x2d0 : 0x30C;
+
+	// Set constants for dante yellow crystal detection
+	vars.OffsetOfStratPCField   = vars.IsOG ? 0x00C : 0x000;
+	vars.OffsetOfPtrToNextStrat = vars.IsOG ? 0x000 : 0x008;
+
 	// Initialize variable for speed display
 	vars.curMS = 0;
 	
-	// Set flag for initialization of custom current. variables (see comments there for info)
-	vars.customCurrentVarsAreInitialized = false;
+	// Set flag for initialization of custom state variables (see comments there for info)
+	vars.customStateVarsAreInitialized = false;
 }
 
-update
-{
+update {
+	if (version == "")
+	{
+		print(vars.UnknownVersionErrorString);
+		return false;
+	}
+
 	// ==== Race condition detection + correction ====
 	//
 	// This is done first thing in the cycle, to prevent corrupt map IDs from leaking in
@@ -253,10 +578,12 @@ update
 	
 	// == Manually read the map ID again (currentPlusAlpha) ==
 	// We will use it to verify LiveSplit's read (current)
-	int currentPlusAlphaCurTribe = memory.ReadValue<int>((IntPtr)vars.AddrCurTribe);
-	int currentPlusAlphaCurLevel = memory.ReadValue<int>((IntPtr)vars.AddrCurLevel);
-	int currentPlusAlphaCurMap   = memory.ReadValue<int>((IntPtr)vars.AddrCurMap);
-	int currentPlusAlphaCurType  = memory.ReadValue<int>((IntPtr)vars.AddrCurType);
+	dynamic currentPlusAlphaCurWAD = vars.GenerateWAD(
+		memory.ReadValue<int>((IntPtr)vars.AddrCurTribe),
+		memory.ReadValue<int>((IntPtr)vars.AddrCurLevel),
+		memory.ReadValue<int>((IntPtr)vars.AddrCurMap),
+		memory.ReadValue<int>((IntPtr)vars.AddrCurType)
+	);
 	
 	// == Race condition detection ==
 	// current is a race condition read iff old != current != currentPlusAlpha, assuming:
@@ -298,21 +625,16 @@ update
 	// and we will clean any race conditions out of c
 	//          o   c a
 	// old map  |  new map
-	if (vars.HasMapIDChanged(old, current) &&
-		!vars.IsThisMap(current,
-			currentPlusAlphaCurTribe,
-			currentPlusAlphaCurLevel,
-			currentPlusAlphaCurMap,
-			currentPlusAlphaCurType))
+	if (vars.HasCurWADChanged(old, current) &&
+		currentPlusAlphaCurWAD.ID != vars.CurWAD(current).ID)
 	{
-		print("****************** RACE CONDITION DETECTED **********************\n" +
-			old.CurTribe             + ", " + old.CurLevel             + ", " +
-			old.CurMap               + ", " + old.CurType              + " old.CurWad\n" + 
-			current.CurTribe         + ", " + current.CurLevel         + ", " +
-			current.CurMap           + ", " + current.CurType          + " current.CurWad\n" + 
-			currentPlusAlphaCurTribe + ", " + currentPlusAlphaCurLevel + ", " +
-			currentPlusAlphaCurMap   + ", " + currentPlusAlphaCurType  + " currentPlusAlphaCurWad\n" +
-			"******* OVERWRITING current.CurWad WITH currentPlusAlphaCurWad *******");
+		print("★★★★ RACE CONDITION DETECTED ★★★★\n\n  " +
+			vars.CurWAD(old).ID       + " - old.CurWAD\n  " + 
+			vars.CurWAD(current).ID   + " - current.CurWAD (INVALID!)\n  " + 
+			currentPlusAlphaCurWAD.ID + " - currentPlusAlphaCurWAD\n\n" +
+			"OVERWRITING current.CurWAD\n" +
+			"WITH currentPlusAlphaCurWAD\n" +
+			"★★★★★★★★★★★★★★★★★★★★★");
 		
 		// == Race condition correction ==
 		//
@@ -323,10 +645,10 @@ update
 		// So instead of overwriting current with old (thus delaying the map change / split until next cycle),
 		// let's overwrite it with currentPlusAlpha (so we split right away like we historically have,
 		// while still correcting the corrupt data!)
-		current.CurTribe = currentPlusAlphaCurTribe;
-		current.CurLevel = currentPlusAlphaCurLevel;
-		current.CurMap = currentPlusAlphaCurMap;
-		current.CurType = currentPlusAlphaCurType;
+		current.CurTribe = currentPlusAlphaCurWAD.Tribe;
+		current.CurLevel = currentPlusAlphaCurWAD.Level;
+		current.CurMap   = currentPlusAlphaCurWAD.Map;
+		current.CurType  = currentPlusAlphaCurWAD.Type;
 	}
 	// == misc notes ==
 	//
@@ -347,42 +669,43 @@ update
 	//
 	// ==== (end race condition detection + correction) ====
 	
-	// Initialization of custom current. variables
+	// Initialization of custom state variables
 	//
 	// Unfortunately this can't simply be initialized in `startup` or `init`,
 	// because when livesplit detects the EU version, the old/current variables get wiped.
-	if (!vars.customCurrentVarsAreInitialized)
+	// FIXME: ↑ give this another shot
+	if (!vars.customStateVarsAreInitialized)
 	{
 		// Initialize PrevTribeSSX
 		// Currently it's just used for detecting wrong warps
-		old.PrevTribeSSX = -1;
-		current.PrevTribeSSX = -1;
+		old.PrevTribeSSX = vars.NULL_VAL;
+		current.PrevTribeSSX = vars.NULL_VAL;
 		
-		// Initialize WadB4GH (Wad Before GOA or Hub)
-		// WadB4GH is used for detecting re-entry for wrong warp, or if you GOA'd in the hub.
-		old.TribeB4GH = -1;
-		old.LevelB4GH = -1;
-		old.MapB4GH   = -1;
-		old.TypeB4GH  = -1;
-		current.TribeB4GH = -1;
-		current.LevelB4GH = -1;
-		current.MapB4GH   = -1;
-		current.TypeB4GH  = -1;
+		// Initialize WADB4GH (WAD Before GOA or Hub)
+		// WADB4GH is used for detecting re-entry for wrong warp, or if you GOA'd in the hub.
+		old.WADB4GH = vars.GenerateWAD(
+			vars.NULL_VAL, vars.NULL_VAL, vars.NULL_VAL, vars.NULL_VAL);
+		current.WADB4GH = vars.GenerateWAD(
+			vars.NULL_VAL, vars.NULL_VAL, vars.NULL_VAL, vars.NULL_VAL);
 		
-		vars.customCurrentVarsAreInitialized = true;
+		vars.customStateVarsAreInitialized = true;
 	}
 	
-	// Update addrSaveSlot
-	const int SaveSlotSize = 0x2000;
-	vars.addrSaveSlot = vars.AddrSaveSlots + (current.CurSaveSlotIdx * SaveSlotSize);
+	// OG only updates
+	if (vars.IsOG)
+	{
+		// Update addrSaveSlot
+		const int SaveSlotSize = 0x2000;
+		vars.AddrSaveSlot = vars.AddrSaveSlots + (current.CurSaveSlotIdx * SaveSlotSize);
+		
+		// Update PrevTribeSSX
+		const int offsetPrevTribeSSX = 0x2B4;
+		var addrPrevTribeSSX = vars.AddrSaveSlot + offsetPrevTribeSSX;
+		current.PrevTribeSSX = memory.ReadValue<int>((IntPtr)addrPrevTribeSSX);
+	}
 	
-	// Update PrevTribeSSX
-	const int offsetPrevTribeSSX = 0x2B4;
-	var addrPrevTribeSSX = vars.addrSaveSlot + offsetPrevTribeSSX;
-	current.PrevTribeSSX = memory.ReadValue<int>((IntPtr)addrPrevTribeSSX);
-	
-	// Update WadB4GH
-	if (vars.HasMapIDChanged(old, current) &&
+	// Update WADB4GH
+	if (vars.HasCurWADChanged(old, current) &&
 		(
 			// now on GOA screen
 			vars.IsThisMap(current, 0, 0, 2, 3) ||
@@ -390,13 +713,14 @@ update
 			(vars.IsGobboHub(current) && !vars.IsThisMap(old, 0, 0, 2, 3)))
 		)
 	{
-		current.TribeB4GH = old.CurTribe;
-		current.LevelB4GH = old.CurLevel;
-		current.MapB4GH = old.CurMap;
-		current.TypeB4GH = old.CurType;
+		current.WADB4GH = vars.GenerateWAD(
+			old.CurTribe, old.CurLevel, old.CurMap, old.CurType);
 	}
 	
 	// Speed display
+	// FIXME: see if you can simplify this by using GameFrame
+	// Maybe move this to a Cheat Engine GUI or a separate asl script or something?
+	//      https://wiki.cheatengine.org/index.php?title=Tutorial:LuaFormGUI
 	if (settings["SpeedDisplay"])
 	{
 		// Calculate number of in game frames since the last livesplit cycle
@@ -434,137 +758,230 @@ update
 			vars.SetTextComponent("UPF (3D)", vars.upf3D.ToString("0.0000"), true);
 		}
 	}	
+
+	// Objective completion display
+	if (settings["ObjectiveFlagsDisplay"])
+	{
+		// Initialize with arbitrary value
+		if (!((IDictionary<string, object>)old).ContainsKey("ObjectiveFlagsText"))
+			old.ObjectiveFlagsText = "X";
+
+		// Update objective flags text, if progress list exists
+		if (((IDictionary<string, object>)old).ContainsKey("ProgressList"))
+		{
+			int i = current.CurTribe * 40 + current.CurLevel * 4 + current.CurType;
+			int ObjectiveFlags = current.ProgressList[i];
+			current.ObjectiveFlagsText = Convert.ToString(ObjectiveFlags, 2);
+		}
+		else
+			current.ObjectiveFlagsText = "-";
+
+		// Only update livesplit element if the text has changed
+		if (current.ObjectiveFlagsText != old.ObjectiveFlagsText)
+		{
+			vars.SetTextComponent("Objective Flags", current.ObjectiveFlagsText, true);
+		}
+	}
 	
 	// Debug output
 	if (settings["DebugOutput"])
 	{
 		string debugText = "";
-		
-		// Map changes
+
+		// CurWAD changes
 		if (settings["DO_MapChanges"] &&
-			vars.HasMapIDChanged(old, current))
+			vars.HasCurWADChanged(old, current))
 		{
-			debugText += "\n┃Tribe: " + old.CurTribe.ToString() +
-				        " -> " + current.CurTribe.ToString() +
-				          " (" + currentPlusAlphaCurTribe.ToString() +
-				")\n┃Level: " + old.CurLevel.ToString() +
-				        " -> " + current.CurLevel.ToString() +
-				          " (" + currentPlusAlphaCurLevel.ToString() +
-				")\n┃Map:   " + old.CurMap.ToString() +
-				        " -> " + current.CurMap.ToString() +
-				          " (" + currentPlusAlphaCurMap.ToString() +
-				")\n┃Type:  " + old.CurType.ToString() +
-				        " -> " + current.CurType.ToString() +
-				          " (" + currentPlusAlphaCurType.ToString() + ")";
+			debugText +=
+				"\n┃CurWAD:  " + vars.CurWAD(old).ID + " →" +
+				"\n┃         " + vars.CurWAD(current).ID + 
+				" (" + currentPlusAlphaCurWAD.ID + ")";
 		}
-		
-		// WadB4GH changes
-		if (settings["DO_WadB4GH"] &&
-			(old.TribeB4GH != current.TribeB4GH ||
-			old.LevelB4GH != current.LevelB4GH ||
-			old.MapB4GH != current.MapB4GH ||
-			old.TypeB4GH != current.TypeB4GH))
+
+		// NewWAD changes
+		if (settings["DO_MapChanges"] && !vars.IsOG &&
+			vars.NewWAD(old).ID != vars.NewWAD(current).ID)
 		{
-			debugText += "\n┃TribeB4GH: " + old.TribeB4GH.ToString() +
-				           " -> " + current.TribeB4GH.ToString() +
-				"\n┃LevelB4GH: " + old.LevelB4GH.ToString() +
-				           " -> " + current.LevelB4GH.ToString() +
-				"\n┃MapB4GH:   " + old.MapB4GH.ToString() +
-				           " -> " + current.MapB4GH.ToString() +
-				"\n┃TypeB4GH:  " + old.TypeB4GH.ToString() +
-				           " -> " + current.TypeB4GH.ToString();
+			debugText +=
+				"\n┃NewWAD:  " + vars.NewWAD(old).ID + " →" +
+				"\n┃         " + vars.NewWAD(current).ID;
+		}
+
+		// WADB4GH changes
+		if (settings["DO_WADB4GH"] &&
+			old.WADB4GH.ID != current.WADB4GH.ID)
+		{
+			debugText +=
+				"\n┃WADB4GH: " + old.WADB4GH.ID + " →" +
+				"\n┃         " + current.WADB4GH.ID;
 		}
 		
 		// PrevTribeSSX changes
-		if (settings["DO_PrevTribeSSX"] &&
+		if (settings["DO_PrevTribeSSX"] && vars.IsOG &&
 			old.PrevTribeSSX != current.PrevTribeSSX)
 		{
 			debugText += "\n┃PrevTribeSSX: " + old.PrevTribeSSX.ToString() +
-				" -> " + current.PrevTribeSSX.ToString();
+				" → " + current.PrevTribeSSX.ToString();
 		}
 		
-		// MainState changes
-		if (settings["DO_MainState"] &&
-			old.MainState != current.MainState)
+		// NewGameState changes
+		if (settings["DO_NewGameState"] &&
+			old.NewGameState != current.NewGameState)
 		{
-			debugText += "\n┃MainState: " + old.MainState.ToString() +
-				" -> " + current.MainState.ToString();
+			debugText +=
+				"\n┃NewGameState: " + vars.GetGameStateSymbol(old.NewGameState, vars.IsOG) + 
+				" (" + old.NewGameState.ToString() + ") →" +
+				"\n┃              " + vars.GetGameStateSymbol(current.NewGameState, vars.IsOG) + 
+				" (" + current.NewGameState.ToString() + ")";
 		}
 		
-		// InGameState changes
-		if (settings["DO_InGameState"] &&
-			old.InGameState != current.InGameState)
+		// GameState changes
+		if (settings["DO_GameState"] &&
+			old.GameState != current.GameState)
 		{
-			debugText += "\n┃InGameState: " + old.InGameState.ToString() +
-				" -> " + current.InGameState.ToString();
+			debugText +=
+				"\n┃GameState: " + vars.GetGameStateSymbol(old.GameState, vars.IsOG) + 
+				" (" + old.GameState.ToString() + ") →" +
+				"\n┃           " + vars.GetGameStateSymbol(current.GameState, vars.IsOG) + 
+				" (" + current.GameState.ToString() + ")";
 		}
 		
-		// IsCheatMenuOpen changes
-		if (settings["DO_IsCheatMenuOpen"] &&
-			old.IsCheatMenuOpen != current.IsCheatMenuOpen)
+		// IsNewGameStateValid changes
+		// FIXME: enable this for HD, if you can find it. update the settings text too.
+		if (settings["DO_IsNewGameStateValid"] && vars.IsOG &&
+			old.IsNewGameStateValid != current.IsNewGameStateValid)
 		{
-			debugText += "\n┃IsCheatMenuOpen: " + old.IsCheatMenuOpen.ToString() +
-				" -> " + current.IsCheatMenuOpen.ToString();
+			debugText += "\n┃IsNewGameStateValid: " + old.IsNewGameStateValid.ToString() +
+				" → " + current.IsNewGameStateValid.ToString();
+		}
+
+		// GameOver changes
+		if (settings["DO_GameOver"] &&
+			old.GameOver != current.GameOver)
+		{
+			debugText += "\n┃GameOver: " + old.GameOver.ToString() +
+				" → " + current.GameOver.ToString();
+		}
+		
+		// DebugMode changes
+		if (settings["DO_DebugMode"] &&
+			old.DebugMode != current.DebugMode)
+		{
+			debugText += "\n┃DebugMode: " + old.DebugMode.ToString() +
+				" → " + current.DebugMode.ToString();
 		}
 		
 		// AllowReturnToHub changes
-		if (settings["DO_AllowReturnToHub"] &&
+		if (settings["DO_AllowReturnToHub"] && vars.IsOG &&
 			old.AllowReturnToHub != current.AllowReturnToHub)
 		{
 			debugText += "\n┃AllowReturnToHub: " + old.AllowReturnToHub.ToString() +
-				" -> " + current.AllowReturnToHub.ToString();
+				" → " + current.AllowReturnToHub.ToString();
 		}
 		
 		// IsMapLoaded changes
-		if (settings["DO_IsMapLoaded"] &&
+		if (settings["DO_IsMapLoaded"] && vars.IsOG &&
 			old.IsMapLoaded != current.IsMapLoaded)
 		{
 			debugText += "\n┃IsMapLoaded: " + old.IsMapLoaded.ToString() +
-				" -> " + current.IsMapLoaded.ToString();
+				" → " + current.IsMapLoaded.ToString();
+		}
+		
+		// CurrentMap changes
+		if (settings["DO_CurrentMap"] && !vars.IsOG &&
+			old.CurrentMap != current.CurrentMap)
+		{
+			debugText += "\n┃CurrentMap: " + old.CurrentMap.ToString("X") +
+				" → " + current.CurrentMap.ToString("X");
 		}
 		
 		// Print output
 		if (debugText != "")
 		{
-			print("┏━━━━━━━━━━━━━┓" +
-				debugText +
-				"\n┗━━━━━━━━━━━━━┛");
+			// Timer details
+			if (settings["DO_TimerDetails"])
+			{
+				var RTA = timer.CurrentTime.RealTime;
+				if (RTA == TimeSpan.Zero)
+				{
+					debugText = "\n┃     [ TIMER IS RESET ]" + debugText;
+				}
+				else
+				{
+					// NOTE: `Update` block runs before `gameTime` block.
+					//       So if we simply grab timer.CurrentTime.GameTime here,
+					//       we will get the outdated value from the last livesplit cycle.
+					var IGT = vars.getGameTime(current.GameFrame, vars.StartFrame, vars.IsOG);
+					var diff = RTA - IGT;
+
+					debugText =
+						"\n┃RTA: " + string.Format("{0:h\\:mm\\:ss\\.fff}", RTA) +
+						 " ┃Loads: "  + string.Format("{0:h\\:mm\\:ss\\.fff}", diff) +
+						"\n┃IGT: " + string.Format("{0:h\\:mm\\:ss\\.fff}", IGT) +
+						 " ┃GameFrame: " + (current.GameFrame - vars.StartFrame).ToString("N0") +
+						debugText;
+				}
+			}
+
+			string TimerWarning = (vars.IsOG && vars.USE_OLD_LRT_FOR_OG) ?
+				" (using old LRT instead of IGT)" : "";
+
+			string HorizontalBar = vars.HasCurWADChanged(old, current) ?
+				"━━━━━━━━━━━━━━━━━━━━━━━━━━━" : "";
+
+			print("┏━ " + version.ToString() + TimerWarning +
+					debugText +
+				"\n┗━" + HorizontalBar);
 		}
 	}
 	
-	return version != "";
+	return true;
 }
 
-start
-{
-	const int MainState_ChooseSaveSlot =  2;
-	const int MainState_Running        = 11;
-	const int MainState_LevelSelect    = 18;
-
+start {
 	// Reset progress list
 	((IDictionary<string, object>)current).Remove("ProgressList");
 
 	// Do not start timer if any boss warp has already been used
-	if (settings["RequireUnusedBossWarps"] &&
-		memory.ReadValue<int>((IntPtr)vars.AddrUsedBossWarps) != 0)
+	if (settings["RequireUnusedBossWarps"] && vars.IsOG &&
+		memory.ReadValue<int>((IntPtr)vars.AddrIntrosTriggered) != 0)
 	{
 		return false;
 	}
 
-	// Start when main state is in transition from
-	// "level select" or "save slot selection" to "running"
-	if (settings["SaveSlotStart"] && (
-		current.MainState == MainState_ChooseSaveSlot ||
-		current.MainState == MainState_LevelSelect) &&
-		current.IsNewMainStateValid != 0 &&
-		current.NewMainState == MainState_Running)
+	// Start on new game
+	if (settings["SaveSlotStart"])
 	{
-		return true;
+		if (vars.IsOG)
+		{
+			// When GameState is in transition from new game save slot screen -> in-game
+			if (current.GameState == vars.GS_CHOOSENEW &&
+				current.IsNewGameStateValid != 0 &&
+				current.NewGameState == vars.GS_GAME)
+			{
+				return true;
+			}
+		}
+		else
+		{
+			// GS_CHOOSENEW doesn't exist in HD
+			// (because the new game / load game screens were merged with the main menu)
+			// So instead, we can check if the new game cutscene is being loaded
+			if (current.GameState == vars.GS_TITLE &&
+				// current.IsNewGameStateValid != 0 &&
+				current.NewGameState == vars.GS_GAME &&
+				vars.NewWAD(current).ID == "t1i1m002")
+			{
+				return true;
+			}
+
+			// Have yet to find the HD address for IsNewGameStateValid. Would be nice to include it in the logic here to be safe (because, yeah, sometimes NewGameState gets stuck on invalid values while on the main menu). However, we seem fine without it.
+		}
 	}
 
 	// The following start condition checks assume the game is running
 	// and the current map is an ingame tribe and not a cutscene
-	if (current.MainState != MainState_Running ||
+	if (current.GameState != vars.GS_GAME ||
 		current.CurTribe < 1 || current.CurTribe > 5 || current.CurType == 3)
 	{
 		return false;
@@ -579,7 +996,7 @@ start
 
 	// IL start
 	if (settings["ILstart"] && 
-		vars.HasMapIDChanged(old, current) &&
+		vars.HasCurWADChanged(old, current) &&
 		// Current map is a non-village map of Dante's World
 		// or a non-village level of the Gobbo tribes
 		(current.CurTribe == 5 ?
@@ -596,30 +1013,28 @@ start
 		!vars.IsGobboHub(old) && vars.IsGobboHub(current) &&
 		// disallow starting on cheat menu warp
 		// (technically a valid SMP->__ segment start, but more intrusive than useful)
-		current.IsCheatMenuOpen == 0 &&
+		!current.DebugMode &&
 		// disallow starting after the opening cutscene when you start a new game
 		!vars.IsThisMap(old, 1, 1, 2, 3) &&
 		// disallow starting after loading a save
-		!vars.IsThisMap(old, 0, 0, 4, 3) &&
+		!vars.IsThisMap(old, 0, 0, 4, 3) && // OG (save slot screen)
+		!vars.IsThisMap(old, 0, 0, 0, 3) && // HD (main menu)
 		// disallow starting after GOA in gobbo hub or secret hub (invalid spawn)
 		!(
 			// was on GOA screen
 			vars.IsThisMap(old, 0, 0, 2, 3) &&
 			// map before GOA is equal to current map (which is already constrained to hub)
-			current.TribeB4GH == current.CurTribe &&
-			current.LevelB4GH == current.CurLevel &&
-			current.MapB4GH == current.CurMap &&
-			current.TypeB4GH == current.CurType
+			current.WADB4GH.ID == vars.CurWAD(current).ID
 		) &&
 		// disallow starting on doing a wrong warp (invalid spawn)
-		!vars.IsWrongWarp(old, current))
+		!(vars.IsOG && vars.IsWrongWarp(old, current)))
 	{
 		return true;
 	}
 	
 	// OTS start (on SMP entry)
 	if (settings["OTSstart_SMP"] &&
-		vars.HasMapIDChanged(old, current) && vars.IsShopMap(current))
+		vars.HasCurWADChanged(old, current) && vars.IsShopMap(current))
 	{
 		return true;
 	}
@@ -633,7 +1048,7 @@ start
 			// SMP
 			vars.IsShopMap(old) ||
 			// anywhere, as long as the cheat menu was used
-			old.IsCheatMenuOpen == 1
+			old.DebugMode
 		) &&
 		// now in one of these places
 		(
@@ -647,19 +1062,22 @@ start
 	}
 }
 
-split
+onStart
 {
+	vars.StartFrame = current.GameFrame;
+}
+
+split {
 	// Split on literally any map change
 	if (settings["SplitOnMapChange_literal"] &&
-		vars.HasMapIDChanged(old, current))
+		vars.HasCurWADChanged(old, current))
 	{
 		return true;
 	}
 	
-	// Cancel if main state is not "running" or
+	// Cancel if GameState is not GS_GAME or
 	// current tribe is not an ingame tribe
-	const int MainState_Running = 11;
-	if (current.MainState != MainState_Running ||
+	if (current.GameState != vars.GS_GAME ||
 		current.CurTribe < 1 || current.CurTribe > 5)
 	{
 		((IDictionary<string, object>)current).Remove("ProgressList");
@@ -669,7 +1087,7 @@ split
 	// Prevent IL/OTS end from being skipped when exiting via GOA
 	// (is "old progress list" not available during this map change? which is why this must go up here?)
 	if (settings["SplitOnMapChange"] &&
-		vars.HasMapIDChanged(old, current) &&
+		vars.HasCurWADChanged(old, current) &&
 		// was on GOA screen
 		vars.IsThisMap(old, 0, 0, 2, 3) &&
 		// disallow split after GOAing in gobbo hub or secret hub (invalid spawn)
@@ -682,10 +1100,7 @@ split
 				current.CurType == 0)
 			) &&
 			// map before GOA is equal to current map (hub)
-			current.TribeB4GH == current.CurTribe &&
-			current.LevelB4GH == current.CurLevel &&
-			current.MapB4GH == current.CurMap &&
-			current.TypeB4GH == current.CurType
+			current.WADB4GH.ID == vars.CurWAD(current).ID
 		))
 	{
 		return true;
@@ -694,7 +1109,7 @@ split
 	// Prevent IL/OTS end from being skipped when exiting credits screen (ex: into Inca hub after beating Dante)
 	// (the "old progress list" is not available when this map change happens)
 	if (settings["SplitOnMapChange"] &&
-		vars.HasMapIDChanged(old, current) &&
+		vars.HasCurWADChanged(old, current) &&
 		// we came from the credits screen
 		vars.IsThisMap(old, 0, 0, 5, 0))
 	{
@@ -703,16 +1118,17 @@ split
 	
 	// Read progress list
 	const int ProgressListSize = 0xf0;
-	const int ProgressListOffset = 0x2d0;
-	var addrProgressList = vars.addrSaveSlot + ProgressListOffset;
-	current.ProgressList = memory.ReadBytes((IntPtr)addrProgressList, ProgressListSize);
+	vars.AddrProgressList = vars.AddrSaveSlot + vars.ProgressListOffset;
+	current.ProgressList = memory.ReadBytes((IntPtr)vars.AddrProgressList, ProgressListSize);
 
 	// Cancel if old progress list is not available
 	if (!((IDictionary<string, object>)old).ContainsKey("ProgressList")) return false;
 
 	// IL/OTS end
 	if (settings["SplitOnMapChange"] &&
-		vars.HasMapIDChanged(old, current) &&
+		vars.HasCurWADChanged(old, current) &&
+		// disallow a split coming out of the main menu
+		!vars.IsThisMap(old, 0, 0, 0, 3) &&
 		// disallow the split after the opening cutscene when you start a new game
 		!vars.IsThisMap(old, 1, 1, 2, 3) &&
 		// disallow the split between dante and ending cutscene
@@ -725,23 +1141,24 @@ split
 			current.CurType == 1
 		) &&
 		// disallow when re-entering for wrong warp
-		!(
+		// (not relevant for HD, cos you can only WW in OG (afaik...))
+		!(vars.IsOG &&(
 			// General case
 			(
 				vars.IsGobboHub(old) && !vars.IsGobboHub(current) &&
-				old.TribeB4GH == current.CurTribe &&
-				old.LevelB4GH == current.CurLevel &&
+				old.WADB4GH.Tribe == current.CurTribe &&
+				old.WADB4GH.Level == current.CurLevel &&
 					// (allow the map to be different, so this works for levels like flytrap)
-				old.TypeB4GH == current.CurType &&
+				old.WADB4GH.Type == current.CurType &&
 				current.AllowReturnToHub == 1
 			) ||
 			// Masher (the only wrong warpable level with a cutscene)
 			(
 				// entered caveman hub from masher
-				current.TribeB4GH == 3 &&
-				current.LevelB4GH == 2 &&
+				current.WADB4GH.Tribe == 3 &&
+				current.WADB4GH.Level == 2 &&
 					// (allow the map to be different, so this works for overworld or boss room)
-				current.TypeB4GH == 1 &&
+				current.WADB4GH.Type == 1 &&
 				// entering masher from caveman hub
 				(
 					// caveman hub -> masher cutscene
@@ -754,9 +1171,9 @@ split
 				// masher objective is complete
 				current.ProgressList[129] % 2 == 1
 			)
-		) &&
+		)) &&
 		// disallow when doing a wrong warp (invalid spawn)
-		!vars.IsWrongWarp(old, current))
+		!(vars.IsOG && vars.IsWrongWarp(old, current)))
 	{		
 		return true;
 	}
@@ -765,10 +1182,8 @@ split
 	// note that this is a suboption of objective style splits
 	// (because it is redundant to use it with IL style splits)
 	if (settings["SplitOnSMPEntry"] &&
-		// was in hub
-		vars.IsGobboHub(old) &&
-		// now in SMP
-		vars.IsShopMap(current) &&
+		// was in hub, now in SMP
+		vars.IsGobboHub(old) && vars.IsShopMap(current) &&
 		// restrict to sailor through caveman
 		// (inca ends on yellow dante crystal; secret ends on final egg)
 		current.CurTribe >= 1 && current.CurTribe <= 3)
@@ -779,8 +1194,8 @@ split
 	// Babies subsplits
 	if (settings["BabiesSubsplits"] &&
 		vars.IsThisMap(current, 4, 2, 1, 0) &&
-		old.GobboCounter != current.GobboCounter &&
-		settings["BabiesSubsplits_" + current.GobboCounter.ToString()])
+		old.ExtraCount != current.ExtraCount &&
+		settings["BabiesSubsplits_" + current.ExtraCount.ToString()])
 	{
 		return true;
 	}
@@ -792,11 +1207,10 @@ split
 		return true;
 	}
 
-	// "Dante's Final Fight": Split when last crystal is placed
+	// "Dante's Final Fight": Split when all crystals are placed
 	if (vars.IsThisMap(current, 4, 2, 1, 1))
 	{
-		if (old.DFCrystal5IP != current.DFCrystal5IP && current.DFCrystal5IP ==
-			vars.ScriptCodeStart.Deref<int>(game) + vars.DFCrystal5FinalIP)
+		if (vars.AllDFCrystalsJustPlaced(memory, vars))
 		{
 			return true;
 		}
@@ -818,7 +1232,8 @@ split
 	
 	// Objective style splits
 	if (settings["SplitOnObjectiveCompletion"] &&
-		// (it may or may not be necessary to disable this for "Dante's Final Fight"?)
+		// Disable for "Dante's Final Fight"
+		// (because we split on yellow crystal placement instead)
 		!vars.IsThisMap(current, 4, 2, 1, 1))
 	{
 		for (int tribe = 1; tribe <= 5; ++tribe)
@@ -876,10 +1291,22 @@ split
 	}
 }
 
-isLoading
+isLoading {
+	return (vars.IsOG && vars.USE_OLD_LRT_FOR_OG) ?
+	(
+		current.GameState == vars.GS_GAME && (
+		current.GameOver == vars.GO_DOOR || current.GameOver == vars.GO_NEWLEVEL ||
+		!current.IsMapLoaded)
+	) : true;
+}
+
+gameTime
 {
-	const int MainState_Running = 11;
-	return current.MainState == MainState_Running && (
-		current.InGameState == 6 || current.InGameState == 7 ||
-		!current.IsMapLoaded);
+	return (vars.IsOG && vars.USE_OLD_LRT_FOR_OG) ? null :
+		vars.getGameTime(current.GameFrame, vars.StartFrame, vars.IsOG);
+
+	// FIXME: known issues with new load removal (getGameTime)
+	// - During a run, if you close and re-open croc 2 (for example if it crashed), GameFrame resets to 0, messing up your IGT. As a potential fix, on game exit you could set `vars.StartFrame -= current.GameFrame`, so when the game boots up again the timer will pick up where you left off. Crashes do happen occasionally, so this is important to consider.
+	// - If livesplit re-loads the autosplitter while the timer is running, vars.StartFrame gets wiped (it is set on timer start), and thus trying to access vars.StartFrame gives an error, and you have to reset the timer. I don't think this will come up during a run, because you generally won't be editing / re-loading the autosplitter during a run. But it is annoying when developing the autosplitter (cos every time you save the asl file, the timer crashes and must be reset lol)
+	// - On OG, if the game window is inactive (ex if you alt tab away, or if you are using DXWnd and focus another window) then GameFrame freezes and thus the timer stops. GameFrame also freezes on HD while you drag the window around
 }
