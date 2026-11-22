@@ -773,7 +773,8 @@ update {
 		{
 			int i = current.CurTribe * 40 + current.CurLevel * 4 + current.CurType;
 			int ObjectiveFlags = current.ProgressList[i];
-			current.ObjectiveFlagsText = Convert.ToString(ObjectiveFlags, 2);
+			current.ObjectiveFlagsText = "(+" + i.ToString("X") + ") " +
+				Convert.ToString(ObjectiveFlags, 2);
 		}
 		else
 			current.ObjectiveFlagsText = "-";
