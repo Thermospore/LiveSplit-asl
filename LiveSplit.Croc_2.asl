@@ -114,9 +114,10 @@ startup {
 
 	// Start
 	settings.Add("RequireUnusedBossWarps", true,
-		"Do not start if any boss warp has already been used (OG)");
+		"Do not start timer if any boss warp has already been used");
 	settings.SetToolTip("RequireUnusedBossWarps",
-		"OG only; Argonaut fixed this bug in the HD remaster");
+		"Argonaut appears to have fixed this bug in HD," +
+		"\nbut this setting still works, were the bug to occur.");
 
 	settings.Add("SaveSlotStart", true,
 		"Save slot start");
@@ -508,14 +509,15 @@ init {
 			version = "HD-STEAM";
 			vars.IsOG = false;
 
-			vars.AddrSaveSlot = baseAddr + 0xBA9878;
+			vars.AddrSaveSlot        = baseAddr + 0xBA9878;
 				// Your save data seems to be stored here; it gets saved to:
 				// `\AppData\Roaming\Croc 2\saves\76561198041092660\game_X.sav`
 				// where X is replaced with the save slot #
-			vars.AddrCurTribe = baseAddr + 0xBC87D4;
-			vars.AddrCurLevel = baseAddr + 0xBC87D8;
-			vars.AddrCurMap   = baseAddr + 0xBC87DC;
-			vars.AddrCurType  = baseAddr + 0xBC87E0;
+			vars.AddrIntrosTriggered = baseAddr + 0xBC86C8;
+			vars.AddrCurTribe        = baseAddr + 0xBC87D4;
+			vars.AddrCurLevel        = baseAddr + 0xBC87D8;
+			vars.AddrCurMap          = baseAddr + 0xBC87DC;
+			vars.AddrCurType         = baseAddr + 0xBC87E0;
 			vars.PtrToFirstStrat = new DeepPointer(baseAddr + 0xBC7D20, 0);
 			break;
 
@@ -523,11 +525,12 @@ init {
 			version = "HD-GOG";
 			vars.IsOG = false;
 			
-			vars.AddrSaveSlot = baseAddr + 0xBA6B78;
-			vars.AddrCurTribe = baseAddr + 0xBC5AD4;
-			vars.AddrCurLevel = baseAddr + 0xBC5AD8;
-			vars.AddrCurMap   = baseAddr + 0xBC5ADC;
-			vars.AddrCurType  = baseAddr + 0xBC5AE0;
+			vars.AddrSaveSlot        = baseAddr + 0xBA6B78;
+			vars.AddrIntrosTriggered = baseAddr + 0xBC59C8;
+			vars.AddrCurTribe        = baseAddr + 0xBC5AD4;
+			vars.AddrCurLevel        = baseAddr + 0xBC5AD8;
+			vars.AddrCurMap          = baseAddr + 0xBC5ADC;
+			vars.AddrCurType         = baseAddr + 0xBC5AE0;
 			vars.PtrToFirstStrat = new DeepPointer(baseAddr + 0xBC5020, 0);
 			break;
 
@@ -942,9 +945,10 @@ start {
 	((IDictionary<string, object>)current).Remove("ProgressList");
 
 	// Do not start timer if any boss warp has already been used
-	if (settings["RequireUnusedBossWarps"] && vars.IsOG &&
+	if (settings["RequireUnusedBossWarps"] &&
 		memory.ReadValue<int>((IntPtr)vars.AddrIntrosTriggered) != 0)
 	{
+		// FIXME: add some sort of alert here, so ppl know why the timer isn't starting?
 		return false;
 	}
 
