@@ -133,6 +133,12 @@ startup {
 		"IL start");
 	settings.SetToolTip("ILstart",
 		"Starts timer on map change when you enter a level");
+	settings.Add("ILstart_Plane", false,
+		"Allow Inca Plane", "ILstart");
+	settings.Add("ILstart_Dungeon", false,
+		"Allow Inca Dungeon", "ILstart");
+	settings.Add("ILstart_Goo", false,
+		"Allow Inca Goo", "ILstart");
 
 	settings.Add("OTSstart", false,
 		"OTS start");
@@ -175,10 +181,15 @@ startup {
 	settings.Add("SplitOnDanteCrystals", false,
 		"Split on collecting crystals in Dante's World", "SplitOnObjectiveCompletion");
 
+	settings.Add("SplitOnDoor", false,
+		"Split on every door inside a level");
+	settings.SetToolTip("SplitOnDoor",
+		"Useful for IL runs");
+
 	settings.Add("SplitOnGem", false,
 		"Split on collecting gems");
 	settings.SetToolTip("SplitOnGem",
-		"(note: useful for IL runs)");
+		"Useful for IL runs");
 
 	settings.Add("BabiesSubsplits", false,
 		"Babies Subsplits");
@@ -1005,7 +1016,11 @@ start {
 		// or a non-village level of the Gobbo tribes
 		(current.CurTribe == 5 ?
 			current.CurMap > 1 :
-			(current.CurType != 0 || current.CurLevel > 1)))
+			(current.CurType != 0 || current.CurLevel > 1)) &&
+		// Individual settings for the final boss stretch
+		(!vars.IsThisMap(current, 4, 1, 1, 1) || settings["ILstart_Plane"]) &&
+		(!vars.IsThisMap(current, 4, 5, 1, 0) || settings["ILstart_Dungeon"]) &&
+		(!vars.IsThisMap(current, 4, 6, 1, 0) || settings["ILstart_Goo"]))
 	{
 		return true;
 	}
@@ -1200,6 +1215,19 @@ split {
 		vars.IsThisMap(current, 4, 2, 1, 0) &&
 		old.ExtraCount != current.ExtraCount &&
 		settings["BabiesSubsplits_" + current.ExtraCount.ToString()])
+	{
+		return true;
+	}
+
+	// Split on every door inside a level (useful for IL runs)
+	if (settings["SplitOnDoor"] && (
+		// General case
+		(old.GameOver == vars.GO_DOOR && current.GameOver == vars.GO_NORMAL) || (
+		// Case for levels with multiple maps (ex: soveena, masher, etc)
+		old.CurTribe == current.CurTribe &&
+		old.CurLevel == current.CurLevel &&
+		old.CurMap   != current.CurMap   &&
+		old.CurType  == current.CurType)))
 	{
 		return true;
 	}
