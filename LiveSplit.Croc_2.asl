@@ -114,10 +114,10 @@ startup {
 
 	// Start
 	settings.Add("RequireUnusedBossWarps", true,
-		"Do not start if any boss warp has already been used (OG)");
+		"Do not start timer if any boss warp has already been used");
 	settings.SetToolTip("RequireUnusedBossWarps",
-		"FIXME: need to test if they fixed the boss warp bug on HD." + 
-		"\nCurrently this setting is disabled for HD.");
+		"Argonaut appears to have fixed this bug in HD," +
+		"\nbut this setting still works, were the bug to occur.");
 
 	settings.Add("SaveSlotStart", true,
 		"Save slot start");
@@ -133,6 +133,12 @@ startup {
 		"IL start");
 	settings.SetToolTip("ILstart",
 		"Starts timer on map change when you enter a level");
+	settings.Add("ILstart_Plane", false,
+		"Allow Inca Plane", "ILstart");
+	settings.Add("ILstart_Dungeon", false,
+		"Allow Inca Dungeon", "ILstart");
+	settings.Add("ILstart_Goo", false,
+		"Allow Inca Goo", "ILstart");
 
 	settings.Add("OTSstart", false,
 		"OTS start");
@@ -175,10 +181,15 @@ startup {
 	settings.Add("SplitOnDanteCrystals", false,
 		"Split on collecting crystals in Dante's World", "SplitOnObjectiveCompletion");
 
+	settings.Add("SplitOnDoor", false,
+		"Split on every door inside a level");
+	settings.SetToolTip("SplitOnDoor",
+		"Useful for IL runs");
+
 	settings.Add("SplitOnGem", false,
 		"Split on collecting gems");
 	settings.SetToolTip("SplitOnGem",
-		"(note: useful for IL runs)");
+		"Useful for IL runs");
 
 	settings.Add("BabiesSubsplits", false,
 		"Babies Subsplits");
@@ -509,14 +520,15 @@ init {
 			version = "HD-STEAM";
 			vars.IsOG = false;
 
-			vars.AddrSaveSlot = baseAddr + 0xBA9878;
+			vars.AddrSaveSlot        = baseAddr + 0xBA9878;
 				// Your save data seems to be stored here; it gets saved to:
 				// `\AppData\Roaming\Croc 2\saves\76561198041092660\game_X.sav`
 				// where X is replaced with the save slot #
-			vars.AddrCurTribe = baseAddr + 0xBC87D4;
-			vars.AddrCurLevel = baseAddr + 0xBC87D8;
-			vars.AddrCurMap   = baseAddr + 0xBC87DC;
-			vars.AddrCurType  = baseAddr + 0xBC87E0;
+			vars.AddrIntrosTriggered = baseAddr + 0xBC86C8;
+			vars.AddrCurTribe        = baseAddr + 0xBC87D4;
+			vars.AddrCurLevel        = baseAddr + 0xBC87D8;
+			vars.AddrCurMap          = baseAddr + 0xBC87DC;
+			vars.AddrCurType         = baseAddr + 0xBC87E0;
 			vars.PtrToFirstStrat = new DeepPointer(baseAddr + 0xBC7D20, 0);
 			break;
 
@@ -524,11 +536,12 @@ init {
 			version = "HD-GOG";
 			vars.IsOG = false;
 			
-			vars.AddrSaveSlot = baseAddr + 0xBA6B78;
-			vars.AddrCurTribe = baseAddr + 0xBC5AD4;
-			vars.AddrCurLevel = baseAddr + 0xBC5AD8;
-			vars.AddrCurMap   = baseAddr + 0xBC5ADC;
-			vars.AddrCurType  = baseAddr + 0xBC5AE0;
+			vars.AddrSaveSlot        = baseAddr + 0xBA6B78;
+			vars.AddrIntrosTriggered = baseAddr + 0xBC59C8;
+			vars.AddrCurTribe        = baseAddr + 0xBC5AD4;
+			vars.AddrCurLevel        = baseAddr + 0xBC5AD8;
+			vars.AddrCurMap          = baseAddr + 0xBC5ADC;
+			vars.AddrCurType         = baseAddr + 0xBC5AE0;
 			vars.PtrToFirstStrat = new DeepPointer(baseAddr + 0xBC5020, 0);
 			break;
 
@@ -771,7 +784,8 @@ update {
 		{
 			int i = current.CurTribe * 40 + current.CurLevel * 4 + current.CurType;
 			int ObjectiveFlags = current.ProgressList[i];
-			current.ObjectiveFlagsText = Convert.ToString(ObjectiveFlags, 2);
+			current.ObjectiveFlagsText = "(+" + i.ToString("X") + ") " +
+				Convert.ToString(ObjectiveFlags, 2);
 		}
 		else
 			current.ObjectiveFlagsText = "-";
@@ -943,9 +957,10 @@ start {
 	((IDictionary<string, object>)current).Remove("ProgressList");
 
 	// Do not start timer if any boss warp has already been used
-	if (settings["RequireUnusedBossWarps"] && vars.IsOG &&
+	if (settings["RequireUnusedBossWarps"] &&
 		memory.ReadValue<int>((IntPtr)vars.AddrIntrosTriggered) != 0)
 	{
+		// FIXME: add some sort of alert here, so ppl know why the timer isn't starting?
 		return false;
 	}
 
@@ -1001,7 +1016,11 @@ start {
 		// or a non-village level of the Gobbo tribes
 		(current.CurTribe == 5 ?
 			current.CurMap > 1 :
-			(current.CurType != 0 || current.CurLevel > 1)))
+			(current.CurType != 0 || current.CurLevel > 1)) &&
+		// Individual settings for the final boss stretch
+		(!vars.IsThisMap(current, 4, 1, 1, 1) || settings["ILstart_Plane"]) &&
+		(!vars.IsThisMap(current, 4, 5, 1, 0) || settings["ILstart_Dungeon"]) &&
+		(!vars.IsThisMap(current, 4, 6, 1, 0) || settings["ILstart_Goo"]))
 	{
 		return true;
 	}
@@ -1199,6 +1218,19 @@ split {
 	{
 		return true;
 	}
+
+	// Split on every door inside a level (useful for IL runs)
+	if (settings["SplitOnDoor"] && (
+		// General case
+		(old.GameOver == vars.GO_DOOR && current.GameOver == vars.GO_NORMAL) || (
+		// Case for levels with multiple maps (ex: soveena, masher, etc)
+		old.CurTribe == current.CurTribe &&
+		old.CurLevel == current.CurLevel &&
+		old.CurMap   != current.CurMap   &&
+		old.CurType  == current.CurType)))
+	{
+		return true;
+	}
 	
 	// Split on collecting a gem (useful for IL runs)
 	if (settings["SplitOnGem"] &&
@@ -1309,4 +1341,5 @@ gameTime
 	// - During a run, if you close and re-open croc 2 (for example if it crashed), GameFrame resets to 0, messing up your IGT. As a potential fix, on game exit you could set `vars.StartFrame -= current.GameFrame`, so when the game boots up again the timer will pick up where you left off. Crashes do happen occasionally, so this is important to consider.
 	// - If livesplit re-loads the autosplitter while the timer is running, vars.StartFrame gets wiped (it is set on timer start), and thus trying to access vars.StartFrame gives an error, and you have to reset the timer. I don't think this will come up during a run, because you generally won't be editing / re-loading the autosplitter during a run. But it is annoying when developing the autosplitter (cos every time you save the asl file, the timer crashes and must be reset lol)
 	// - On OG, if the game window is inactive (ex if you alt tab away, or if you are using DXWnd and focus another window) then GameFrame freezes and thus the timer stops. GameFrame also freezes on HD while you drag the window around
+	// - When you pause the timer in livesplit, the timer greys out, but IGT keeps running
 }
