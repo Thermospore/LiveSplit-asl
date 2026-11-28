@@ -736,6 +736,7 @@ update {
 	
 	// Speed display
 	// FIXME: see if you can simplify this by using GameFrame
+	// FIXME: are flickers due to race condition?
 	// Maybe move this to a Cheat Engine GUI or a separate asl script or something?
 	//      https://wiki.cheatengine.org/index.php?title=Tutorial:LuaFormGUI
 	if (settings["SpeedDisplay"])
