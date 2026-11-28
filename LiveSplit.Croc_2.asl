@@ -406,9 +406,9 @@ startup {
 		state.NewTribe, state.NewLevel, state.NewMap, state.NewType));
 
 	// Returns IGT
-	vars.getGameTime = new Func<uint, uint, bool, TimeSpan>((GameFrame, StartFrame, IsOG) =>
-		new TimeSpan((GameFrame - StartFrame) *
-			TimeSpan.TicksPerSecond / (IsOG ? 30 : 60))
+	vars.getGameTime = new Func<uint, uint, TimeSpan>((GameFrame, StartFrame) =>
+		new TimeSpan(TimeSpan.TicksPerSecond * (GameFrame - StartFrame) /
+			vars.GameFramesPerTick / vars.GameTicksPerSecond)
 	);
 
 	// Define GameOver constants (found inside the HD croc2.exe)
@@ -560,6 +560,10 @@ init {
 		int? gamestate = vars.IsOG ? mapping.OG : mapping.HD;
 		((IDictionary<string, object>)vars)[mapping.Name] = gamestate;
 	}
+
+	// Set GameFrame related constants
+	vars.GameTicksPerSecond = 30;
+	vars.GameFramesPerTick = vars.IsOG ? 1 : 2;
 
 	// Set constant for indexing into progress list
 	vars.ProgressListOffset = vars.IsOG ? 0x2d0 : 0x30C;
@@ -925,7 +929,7 @@ update {
 					// NOTE: `Update` block runs before `gameTime` block.
 					//       So if we simply grab timer.CurrentTime.GameTime here,
 					//       we will get the outdated value from the last livesplit cycle.
-					var IGT = vars.getGameTime(current.GameFrame, vars.StartFrame, vars.IsOG);
+					var IGT = vars.getGameTime(current.GameFrame, vars.StartFrame);
 					var diff = RTA - IGT;
 
 					debugText =
@@ -1335,7 +1339,7 @@ isLoading {
 gameTime
 {
 	return (vars.IsOG && vars.USE_OLD_LRT_FOR_OG) ? null :
-		vars.getGameTime(current.GameFrame, vars.StartFrame, vars.IsOG);
+		vars.getGameTime(current.GameFrame, vars.StartFrame);
 
 	// FIXME: known issues with new load removal (getGameTime)
 	// - During a run, if you close and re-open croc 2 (for example if it crashed), GameFrame resets to 0, messing up your IGT. As a potential fix, on game exit you could set `vars.StartFrame -= current.GameFrame`, so when the game boots up again the timer will pick up where you left off. Crashes do happen occasionally, so this is important to consider.
